@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
-    // Set base for GitHub Pages project site: https://github.com/hanyfas/ain-mall
-    base: '/ain-mall/',
+    // Base path:
+    // - On Vercel, env var VERCEL is defined → use root '/'
+    // - Otherwise (e.g., GitHub Pages project site), use '/ain-mall/'
+    base: process.env.VERCEL ? '/' : '/ain-mall/',
 })
