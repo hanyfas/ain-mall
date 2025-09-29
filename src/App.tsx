@@ -1,4 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
+// Import amenity icons so Vite rewrites URLs for production
+import iconRestroom from "./assets/aminities/restroom.png";
+import iconParking from "./assets/aminities/parking.png";
+import iconElevator from "./assets/aminities/elevator.png";
+import iconMalePrayer from "./assets/aminities/male_prayer.png";
+import iconFemalePrayer from "./assets/aminities/female_prayer.png";
+import iconChangingRoom from "./assets/aminities/changing_room.png";
+import iconLostFound from "./assets/aminities/lost_found.png";
+import iconCustomerService from "./assets/aminities/customer_service.png";
+import iconAtm from "./assets/aminities/atm.png";
 import {
     Search,
     MapPin,
@@ -615,8 +625,8 @@ function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAme
                                     : "bg-white/90 hover:bg-white text-[var(--brand-black)] border-black/20 backdrop-blur"
                                     }`}
                             >
-                        {a.iconUrl ? (
-                            <img src={toSrc(a.iconUrl)} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
+                                {a.iconUrl ? (
+                                    <img src={toSrc(a.iconUrl)} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
                                 ) : null}
                                 <span className="text-base whitespace-nowrap" data-text-scale="up">{lang === 'en' ? a.en : a.ar}</span>
                             </button>
@@ -771,15 +781,15 @@ function OnScreenKeyboard({ lang, onKey }: { lang: Lang; onKey: (key: KbdKey) =>
 // );
 
 const AMENITIES = [
-    { key: "restrooms", en: "Restrooms", ar: "الحمامات", iconUrl: "/src/assets/aminities/restroom.png" },
-    { key: "parking", en: "Parking", ar: "المواقف", iconUrl: "/src/assets/aminities/parking.png" },
-    { key: "elevator", en: "Elevator", ar: "المصاعد", iconUrl: "/src/assets/aminities/elevator.png" },
-    { key: "male_prayer", en: "Male Prayer Room", ar: "غرفة الصلاة للرجال", iconUrl: "/src/assets/aminities/male_prayer.png" },
-    { key: "female_prayer", en: "Female Prayer Room", ar: "غرفة الصلاة للسيدات", iconUrl: "/src/assets/aminities/female_prayer.png" },
-    { key: "baby_changing", en: "Baby Changing Room", ar: "غرفة التغيير للأطفال", iconUrl: "/src/assets/aminities/changing_room.png" },
-    { key: "lost_found", en: "Lost & Found", ar: "المفقودات", iconUrl: "/src/assets/aminities/lost_found.png" },
-    { key: "customer_service", en: "Customer Service", ar: "خدمة العملاء", iconUrl: "/src/assets/aminities/customer_service.png" },
-    { key: "atm", en: "ATM", ar: "الصراف الآلي", iconUrl: "/src/assets/aminities/atm.png" },
+    { key: "restrooms", en: "Restrooms", ar: "الحمامات", iconUrl: iconRestroom },
+    { key: "parking", en: "Parking", ar: "المواقف", iconUrl: iconParking },
+    { key: "elevator", en: "Elevator", ar: "المصاعد", iconUrl: iconElevator },
+    { key: "male_prayer", en: "Male Prayer Room", ar: "غرفة الصلاة للرجال", iconUrl: iconMalePrayer },
+    { key: "female_prayer", en: "Female Prayer Room", ar: "غرفة الصلاة للسيدات", iconUrl: iconFemalePrayer },
+    { key: "baby_changing", en: "Baby Changing Room", ar: "غرفة التغيير للأطفال", iconUrl: iconChangingRoom },
+    { key: "lost_found", en: "Lost & Found", ar: "المفقودات", iconUrl: iconLostFound },
+    { key: "customer_service", en: "Customer Service", ar: "خدمة العملاء", iconUrl: iconCustomerService },
+    { key: "atm", en: "ATM", ar: "الصراف الآلي", iconUrl: iconAtm },
 ];
 
 function BrowseBox({
@@ -1447,7 +1457,7 @@ export default function WayfindingApp() {
                 {/* Top bar: logo + language selector (glass) */}
                 <div className="px-4 md:px-6 pt-4 pb-2">
                     <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
-                <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                        <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <div className="flex items-center gap-2" data-tight-gap="md">
                             <button
