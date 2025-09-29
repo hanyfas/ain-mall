@@ -559,8 +559,8 @@ function ChipsRow({ items, activeKey, onSelect, lang }: { items: CategoryRec[]; 
 
 function IconTile({ label, iconUrl, onClick }: { label: string; iconUrl?: string; onClick?: () => void }) {
     return (
-        <button onClick={onClick} className="flex flex-col items-center justify-center gap-2 p-2 rounded-2xl bg-white/80 hover:bg-white/90 border border-black/20 shadow-md backdrop-blur transition-all duration-200">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--brand-purple)]/10 overflow-hidden">
+        <button onClick={onClick} className="flex flex-col items-center justify-center gap-2 p-2 rounded-2xl bg-white/80 hover:bg-white/90 border border-black/20 shadow-md backdrop-blur transition-all duration-200" data-grid-tile>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--brand-purple)]/10 overflow-hidden" data-grid-thumb data-icon-scale="up">
                 {iconUrl ? (
                     <img
                         src={iconUrl}
@@ -576,14 +576,14 @@ function IconTile({ label, iconUrl, onClick }: { label: string; iconUrl?: string
                         }}
                     />
                 ) : (
-                    <div className="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center" data-icon-scale="up">
                         <svg className="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                     </div>
                 )}
             </div>
-            <div className="text-sm font-medium text-[var(--brand-black)]">{label}</div>
+            <div className="text-sm font-medium text-[var(--brand-black)]" data-text-scale="up">{label}</div>
         </button>
     );
 }
@@ -591,9 +591,9 @@ function IconTile({ label, iconUrl, onClick }: { label: string; iconUrl?: string
 function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void }) {
     return (
         <div className="px-4 md:px-6 pb-4">
-            <div className="w-full rounded-2xl border border-black/20 bg-white/60 backdrop-blur shadow-md">
-                <div className="px-3 py-3 overflow-x-auto">
-                    <div className="flex items-stretch justify-center gap-3 min-w-0 w-full">
+            <div className="w-full rounded-2xl border border-black/20 bg-white/60 backdrop-blur shadow-md" data-glass>
+                <div className="px-3 py-3 overflow-x-auto" data-tight-pad="md">
+                    <div className="flex items-stretch justify-center gap-3 min-w-0 w-full" data-tight-gap="lg">
                         {AMENITIES.map((a) => (
                             <button
                                 key={a.key}
@@ -604,9 +604,9 @@ function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAme
                                     }`}
                             >
                                 {a.iconUrl ? (
-                                    <img src={a.iconUrl} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" />
+                                    <img src={a.iconUrl} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
                                 ) : null}
-                                <span className="text-base whitespace-nowrap">{lang === 'en' ? a.en : a.ar}</span>
+                                <span className="text-base whitespace-nowrap" data-text-scale="up">{lang === 'en' ? a.en : a.ar}</span>
                             </button>
                         ))}
                     </div>
@@ -628,8 +628,9 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                         key={s.id}
                         onClick={() => onSelect(s.id)}
                         className="w-full text-left px-4 py-3 hover:bg-white/50 transition grid grid-cols-[40px_1fr_auto] gap-3 items-center"
+                        data-list-item
                     >
-                        <div className="w-8 h-8 rounded-lg bg-[var(--brand-purple)]/10 flex items-center justify-center overflow-hidden border border-black/20">
+                        <div className="w-8 h-8 rounded-lg bg-[var(--brand-purple)]/10 flex items-center justify-center overflow-hidden border border-black/20" data-list-thumb data-icon-scale="up">
                             {s.iconUrl ? (
                                 <img
                                     src={s.iconUrl}
@@ -649,7 +650,7 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                             )}
                         </div>
                         <div>
-                            <div className="font-medium text-[var(--brand-black)]">{lang === "en" ? s.name_en : s.name_ar}</div>
+                            <div className="font-medium text-[var(--brand-black)]" data-text-scale="up">{lang === "en" ? s.name_en : s.name_ar}</div>
                             <div className="text-xs text-black/60">
                                 {STR[lang].level}: {s.level}
                             </div>
@@ -665,22 +666,23 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
 function ResultsGrid({ lang, items, onSelect }: { lang: Lang; items: StoreRec[]; onSelect: (id: number) => void }) {
     return (
         <div className="h-full bg-white/80 backdrop-blur rounded-2xl border border-black/20 shadow-md overflow-auto p-3">
-            <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3" data-tight-grid-gap>
                 {items.map((s) => (
                     <button
                         key={s.id}
                         onClick={() => onSelect(s.id)}
                         className="flex flex-col items-center gap-2 p-3 rounded-xl border border-black/20 hover:bg-white/80 transition backdrop-blur shadow-sm"
+                        data-grid-tile
                         style={{ backgroundColor: '#c9d1d952' }}
                     >
-                        <div className="w-12 h-12 rounded-xl bg-[var(--brand-purple)]/10 text-[var(--brand-purple)] grid place-items-center overflow-hidden border border-black/20">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--brand-purple)]/10 text-[var(--brand-purple)] grid place-items-center overflow-hidden border border-black/20" data-grid-thumb data-icon-scale="up">
                             {s.iconUrl ? (
                                 <img src={s.iconUrl} alt="logo" className="w-10 h-10 object-contain rounded-lg" />
                             ) : (
                                 <Store className="w-6 h-6" />
                             )}
                         </div>
-                        <div className="text-sm font-medium text-center text-[var(--brand-black)] truncate w-full">
+                        <div className="text-sm font-medium text-center text-[var(--brand-black)] truncate w-full" data-text-scale="up">
                             {lang === "en" ? s.name_en : s.name_ar}
                         </div>
                         <div className="text-[10px] text-black/60">
@@ -696,9 +698,9 @@ function ResultsGrid({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
 function OnScreenKeyboard({ lang, onKey }: { lang: Lang; onKey: (key: KbdKey) => void }) {
     const rows = getKeyboardLayout(lang);
     return (
-        <div className="w-full p-3 border border-black/20 bg-white/70 backdrop-blur rounded-xl">
+        <div className="w-full p-3 border border-black/20 bg-white/70 backdrop-blur rounded-xl" data-tight-pad="lg">
             {rows.map((row, ri) => (
-                <div key={ri} className="grid grid-cols-12 gap-1 mb-1 last:mb-0 select-none">
+                <div key={ri} className="grid grid-cols-12 gap-1 mb-1 last:mb-0 select-none" data-tight-gap="sm">
                     {row.map((k, i) => (
                         <button
                             key={i}
@@ -811,12 +813,13 @@ function BrowseBox({
         <div
             data-test-id="glass-browse"
             className="backdrop-blur-xl bg-white/40 rounded-2xl border border-black/20 shadow-lg h-full min-h-0 flex flex-col"
+            data-glass
         >
             {/* Search header */}
-            <div className="p-4 border-b border-white/40 min-w-0 flex-shrink-0">
-                <div className="flex flex-col gap-3">
+            <div className="p-4 border-b border-white/40 min-w-0 flex-shrink-0" data-tight-pad="lg">
+                <div className="flex flex-col gap-3" data-tight-gap="md">
                     {/* Search box */}
-                    <div className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-3 shadow-sm border border-black/20 backdrop-blur">
+                    <div className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-3 shadow-sm border border-black/20 backdrop-blur" data-tight-pad="md">
                         <Search className="w-5 h-5 text-[var(--brand-black)]/70" />
                         <input
                             className="w-full outline-none text-[var(--brand-black)] placeholder-black/50 bg-transparent"
@@ -852,7 +855,7 @@ function BrowseBox({
                         <div className="text-sm text-black/70">
                             {STR[lang].results}: {items.length}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2" data-tight-gap="sm">
                             <button
                                 className={`px-3 py-2 rounded-lg border ${view === "grid"
                                     ? "bg-[var(--brand-purple)] text-white border-transparent"
@@ -883,7 +886,7 @@ function BrowseBox({
             </div>
 
             {/* Results area */}
-            <div className="flex-1 min-h-0 p-3 overflow-hidden">
+            <div className="flex-1 min-h-0 p-3 overflow-hidden" data-tight-pad="md">
                 {view === "grid" ? (
                     <ResultsGrid lang={lang} items={items} onSelect={onSelect} />
                 ) : (
@@ -1248,6 +1251,9 @@ export default function WayfindingApp() {
     });
     const dir = lang === "ar" ? "rtl" : "ltr";
 
+    // UI density variant (flat/dense)
+    const [dense, setDense] = useState<boolean>(false);
+
     // Browse state
     const [query, setQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -1277,6 +1283,7 @@ export default function WayfindingApp() {
     return (
         <div
             className="w-full relative overflow-hidden"
+            data-ui-variant={dense ? "dense" : "default"}
             dir={dir}
             style={{
                 ["--brand-purple" as any]: "#A072E8",
@@ -1404,20 +1411,46 @@ export default function WayfindingApp() {
             animation: gradient 8s ease-in-out infinite alternate;
         }
         
-     
+        /* Dense (flat) variant overrides */
+        [data-ui-variant="dense"] * { border-radius: 0 !important; }
+        [data-ui-variant="dense"] [data-glass] { background: rgba(255,255,255,0.9) !important; }
+        [data-ui-variant="dense"] [data-tight-pad="lg"] { padding: 8px !important; }
+        [data-ui-variant="dense"] [data-tight-pad="md"] { padding: 6px !important; }
+        [data-ui-variant="dense"] [data-tight-pad="sm"] { padding: 4px !important; }
+        [data-ui-variant="dense"] [data-tight-gap="lg"] { gap: 4px !important; }
+        [data-ui-variant="dense"] [data-tight-gap="md"] { gap: 3px !important; }
+        [data-ui-variant="dense"] [data-tight-gap="sm"] { gap: 2px !important; }
+        [data-ui-variant="dense"] [data-tight-grid-gap] { gap: 4px !important; }
+        [data-ui-variant="dense"] [data-icon-scale="up"] svg,
+        [data-ui-variant="dense"] [data-icon-scale="up"] img { width: 2.75rem !important; height: 2.75rem !important; }
+        [data-ui-variant="dense"] [data-text-scale="up"] { font-size: 1.05rem !important; }
+        [data-ui-variant="dense"] [data-list-item] { padding: 8px 10px !important; }
+        [data-ui-variant="dense"] [data-list-thumb] { width: 3rem !important; height: 3rem !important; }
+        [data-ui-variant="dense"] [data-grid-tile] { padding: 8px !important; }
+        [data-ui-variant="dense"] [data-grid-thumb] { width: 4rem !important; height: 4rem !important; }
+        
         `}</style>
 
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
                 {/* Top bar: logo + language selector (glass) */}
                 <div className="px-4 md:px-6 pt-4 pb-2">
-                    <div className="h-16 md:h-20 w-full rounded-2xl bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6">
+                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
                         <img src={LOGO_URL} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
-                        <LanguageToggle lang={lang} onChange={setLang} />
+                        <div className="flex items-center gap-2" data-tight-gap="md">
+                            <button
+                                className={`flex items-center gap-2 px-3 py-2 ${dense ? "rounded-none" : "rounded-xl"} border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md`}
+                                onClick={() => setDense((v) => !v)}
+                                aria-label="Toggle density"
+                            >
+                                <span className="font-medium">{dense ? (lang === 'en' ? 'Default UI' : 'واجهة عادية') : (lang === 'en' ? 'Dense UI' : 'واجهة مكثفة')}</span>
+                            </button>
+                            <LanguageToggle lang={lang} onChange={setLang} />
+                        </div>
                     </div>
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
-                <main data-test-id="main-grid" className="flex-1 min-h-0 px-4 md:px-6 pb-2 grid gap-4 md:gap-6 items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden">
+                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
                     {/* Left: Browse/search */}
                     <section className="min-h-0 min-w-0 order-2 xl:order-none overflow-hidden">
                         <BrowseBox
