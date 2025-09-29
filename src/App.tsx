@@ -59,17 +59,16 @@ const MAP_IMG_PRIMARY = "/images/map_temo.png";
 const MAP_IMG_FALLBACK = "/images/map_temo.png";
 
 // Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
-function encodePathSegments(raw: string): string {
-    // Keep slashes, encode each segment to handle spaces, apostrophes, diacritics, etc.
-    const leading = raw.startsWith("/") ? "/" : "";
-    const parts = raw.replace(/^\/+/, "").split("/");
-    const encoded = parts.map((seg) => encodeURIComponent(decodeURIComponent(seg)));
-    return leading + encoded.join("/");
-}
 function withBase(path: string): string {
-    const encoded = encodePathSegments(path);
-    const trimmed = encoded.startsWith("/") ? encoded.slice(1) : encoded;
-    return (import.meta as any).env.BASE_URL + trimmed;
+    // Rely on URL resolution to avoid double-encoding
+    try {
+        const base = (import.meta as any).env.BASE_URL || '/';
+        const u = new URL(path, base);
+        return u.pathname;
+    } catch {
+        const trimmed = path.startsWith('/') ? path : '/' + path;
+        return ((import.meta as any).env.BASE_URL || '/') + trimmed.replace(/^\//, '');
+    }
 }
 function toSrc(path?: string): string | undefined {
     if (!path) return undefined;
@@ -96,9 +95,8 @@ function computeFallbackUrl(original: string, attempt: number): string | null {
         ];
         const idx = Math.min(attempt, fixes.length - 1);
         const candidate = fixes[idx];
-        const reencoded = encodeURIComponent(candidate).replace(/%20/g, ' ');
-        // Keep spaces; withBase() will encode properly segment-wise
-        return withBase(dir + '/' + reencoded);
+        // Let withBase/URL handle encoding
+        return withBase(dir + '/' + candidate);
     } catch {
         return null;
     }
