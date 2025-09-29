@@ -85,30 +85,43 @@ function toSrc(path?: string): string | undefined {
     return withBase(encoded);
 }
 
-function computeFallbackUrl(original: string, attempt: number): string | null {
-    try {
-        const url = original.startsWith('/') ? original : '/' + original;
-        const parts = url.split('/');
-        const file = parts.pop() || '';
-        const dir = parts.join('/');
-        // Decode once to operate on raw filename
-        const decoded = decodeURIComponent(file);
-        // Common fixes per attempt
-        const fixes = [
-            // 0: replace curly apostrophes and dots in names like P.F. -> P F
-            decoded.replace(/[’']/g, "'").replace(/\.+/g, ' ').replace(/\s+/g, ' ').trim(),
-            // 1: remove apostrophes entirely
-            decoded.replace(/[’']/g, '').trim(),
-            // 2: strip diacritics (é → e)
-            decoded.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’']/g, '').trim(),
-        ];
-        const idx = Math.min(attempt, fixes.length - 1);
-        const candidate = fixes[idx];
-        // Let withBase/URL handle encoding
-        return withBase(dir + '/' + candidate);
-    } catch {
-        return null;
+// Removed old computeFallbackUrl; we now generate explicit candidate lists
+
+function slugifyName(name: string): string {
+    const noDiacritics = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cleaned = noDiacritics.replace(/[’']/g, '').replace(/\.+/g, ' ').replace(/&/g, 'and');
+    return cleaned.trim().replace(/\s+/g, ' ');
+}
+
+function buildStoreLogoCandidates(store: StoreRec): string[] {
+    const candidates: string[] = [];
+    if (store.iconUrl) candidates.push(store.iconUrl);
+    const baseNames = [store.name_en, store.name_en.toLowerCase()];
+    const variants = new Set<string>();
+    for (const n of baseNames) {
+        const v = slugifyName(n);
+        variants.add(v);
+        variants.add(v.replace(/\s+/g, '-'));
+        variants.add(v.replace(/\s+/g, ''));
     }
+    for (const v of variants) {
+        candidates.push(`/stores/${v}.png`);
+        candidates.push(`/stores/${v}.jpg`);
+        // Also try category icon folder when applicable (handles cafe names with accents)
+        candidates.push(`/icons/categories/${encodeSegments(store.category)}/${v}.png`);
+        candidates.push(`/icons/categories/${encodeSegments(store.category)}/${v}.jpg`);
+    }
+    // Hard map for specific tricky cases
+    if (store.name_en === 'Caffè Nero') {
+        candidates.unshift('/icons/categories/food & cafe/Caffè Nero.png', '/stores/Caffe Nero.png');
+    }
+    if (store.name_en === "P.F. Chang's") {
+        candidates.unshift('/icons/categories/food & cafe/P F Changs.png', '/stores/PF Changs.png');
+    }
+    if (store.name_en === 'Paul Café') {
+        candidates.unshift('/icons/categories/food & cafe/Paul Café.png', '/stores/Paul Cafe.png');
+    }
+    return candidates.map((p) => toSrc(p) || p);
 }
 
 type Lang = "en" | "ar";
@@ -700,13 +713,16 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                                     className="w-6 h-6 object-contain rounded-md"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
-                                        const src0 = target.getAttribute('src') || '';
                                         const attempt = Number(target.dataset.a || '0');
-                                        const next = computeFallbackUrl(src0, attempt);
-                                        if (next && attempt < 2) {
-                                            target.dataset.a = String(attempt + 1);
-                                            target.src = next;
-                                            return;
+                                        const storeId = Number(target.getAttribute('data-store-id'));
+                                        const store = STORES.find((x) => x.id === storeId);
+                                        if (store) {
+                                            const list = buildStoreLogoCandidates(store);
+                                            if (attempt < list.length) {
+                                                target.dataset.a = String(attempt + 1);
+                                                target.src = list[attempt];
+                                                return;
+                                            }
                                         }
                                         target.style.display = 'none';
                                         const parent = target.parentElement;
@@ -714,6 +730,7 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                                             parent.innerHTML = '<svg class="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
                                         }
                                     }}
+                                    data-store-id={s.id}
                                 />
                             ) : (
                                 <Store className="w-5 h-5 text-[var(--brand-purple)]" />
@@ -747,17 +764,20 @@ function ResultsGrid({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                     >
                         <div className="w-12 h-12 rounded-xl bg-[var(--brand-purple)]/10 text-[var(--brand-purple)] grid place-items-center overflow-hidden border border-black/20" data-grid-thumb data-icon-scale="up">
                             {s.iconUrl ? (
-                                <img src={toSrc(s.iconUrl) || ''} alt="logo" className="w-10 h-10 object-contain rounded-lg" onError={(e) => {
+                                <img src={toSrc(s.iconUrl) || ''} alt="logo" className="w-10 h-10 object-contain rounded-lg" data-store-id={s.id} onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    const src0 = target.getAttribute('src') || '';
                                     const attempt = Number(target.dataset.a || '0');
-                                    const next = computeFallbackUrl(src0, attempt);
-                                    if (next && attempt < 2) {
-                                        target.dataset.a = String(attempt + 1);
-                                        target.src = next;
-                                    } else {
-                                        target.style.display = 'none';
+                                    const storeId = Number(target.getAttribute('data-store-id'));
+                                    const store = STORES.find((x) => x.id === storeId);
+                                    if (store) {
+                                        const list = buildStoreLogoCandidates(store);
+                                        if (attempt < list.length) {
+                                            target.dataset.a = String(attempt + 1);
+                                            target.src = list[attempt];
+                                            return;
+                                        }
                                     }
+                                    target.style.display = 'none';
                                 }} />
                             ) : (
                                 <Store className="w-6 h-6" />
