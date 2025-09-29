@@ -70,12 +70,19 @@ function withBase(path: string): string {
         return ((import.meta as any).env.BASE_URL || '/') + trimmed.replace(/^\//, '');
     }
 }
+function encodeSegments(p: string): string {
+    const leading = p.startsWith('/') ? '/' : '';
+    const parts = p.replace(/^\/+/, '').split('/');
+    return leading + parts.map((s) => encodeURIComponent(s)).join('/');
+}
 function toSrc(path?: string): string | undefined {
     if (!path) return undefined;
-    // If Vite already provided a fully-qualified path (e.g., imported asset), use it as-is
-    if (path.startsWith('/')) return path;
+    // If Vite already provided an emitted asset (e.g., imported icon), keep as-is
+    if (path.startsWith('/') && path.includes('/assets/')) return path;
     if (/^https?:\/\//i.test(path)) return path;
-    return withBase(path);
+    // For public files like /icons/... encode segments and prefix base
+    const encoded = encodeSegments(path);
+    return withBase(encoded);
 }
 
 function computeFallbackUrl(original: string, attempt: number): string | null {
