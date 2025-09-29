@@ -10,11 +10,11 @@ import {
     Baby,
     Footprints,
     Info,
-    
-    
-    
-    
-    
+
+
+
+
+
     Languages,
     LayoutGrid,
     List as ListIcon,
@@ -47,6 +47,19 @@ import {
 const LOGO_URL = "/images/AinMall_Logo.png";
 const MAP_IMG_PRIMARY = "/images/map_temo.png";
 const MAP_IMG_FALLBACK = "/images/map_temo.png";
+
+// Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
+function withBase(path: string): string {
+    const trimmed = path.startsWith("/") ? path.slice(1) : path;
+    // import.meta.env.BASE_URL always ends with '/'
+    // e.g., '/' on Vercel, '/ain-mall/' on GitHub Pages
+    return (import.meta as any).env.BASE_URL + trimmed;
+}
+function toSrc(path?: string): string | undefined {
+    if (!path) return undefined;
+    if (/^https?:\/\//i.test(path)) return path;
+    return withBase(path);
+}
 
 type Lang = "en" | "ar";
 
@@ -602,8 +615,8 @@ function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAme
                                     : "bg-white/90 hover:bg-white text-[var(--brand-black)] border-black/20 backdrop-blur"
                                     }`}
                             >
-                                {a.iconUrl ? (
-                                    <img src={a.iconUrl} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
+                        {a.iconUrl ? (
+                            <img src={toSrc(a.iconUrl)} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
                                 ) : null}
                                 <span className="text-base whitespace-nowrap" data-text-scale="up">{lang === 'en' ? a.en : a.ar}</span>
                             </button>
@@ -632,7 +645,7 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                         <div className="w-8 h-8 rounded-lg bg-[var(--brand-purple)]/10 flex items-center justify-center overflow-hidden border border-black/20" data-list-thumb data-icon-scale="up">
                             {s.iconUrl ? (
                                 <img
-                                    src={s.iconUrl}
+                                    src={toSrc(s.iconUrl)}
                                     alt="Store logo"
                                     className="w-6 h-6 object-contain rounded-md"
                                     onError={(e) => {
@@ -676,7 +689,7 @@ function ResultsGrid({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                     >
                         <div className="w-12 h-12 rounded-xl bg-[var(--brand-purple)]/10 text-[var(--brand-purple)] grid place-items-center overflow-hidden border border-black/20" data-grid-thumb data-icon-scale="up">
                             {s.iconUrl ? (
-                                <img src={s.iconUrl} alt="logo" className="w-10 h-10 object-contain rounded-lg" />
+                                <img src={toSrc(s.iconUrl)} alt="logo" className="w-10 h-10 object-contain rounded-lg" />
                             ) : (
                                 <Store className="w-6 h-6" />
                             )}
@@ -964,13 +977,13 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                 }}
             >
                 <img
-                    src={MAP_IMG_PRIMARY}
+                    src={withBase(MAP_IMG_PRIMARY)}
                     alt="Mall map"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                         const t = e.currentTarget as HTMLImageElement;
                         if (t.dataset.fallback !== "1") {
-                            t.src = MAP_IMG_FALLBACK;
+                            t.src = withBase(MAP_IMG_FALLBACK);
                             t.dataset.fallback = "1";
                         }
                     }}
@@ -1000,7 +1013,7 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                             y={amenityLocation.y - 2}
                             width="4"
                             height="4"
-                            href={AMENITIES.find(a => a.key === activeAmenity)?.iconUrl}
+                            href={toSrc(AMENITIES.find(a => a.key === activeAmenity)?.iconUrl)}
                             className="animate-amenity-pulse"
                         />
                         <text
@@ -1434,7 +1447,8 @@ export default function WayfindingApp() {
                 {/* Top bar: logo + language selector (glass) */}
                 <div className="px-4 md:px-6 pt-4 pb-2">
                     <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
-                        <img src={LOGO_URL} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                        <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <div className="flex items-center gap-2" data-tight-gap="md">
                             <button
                                 className={`flex items-center gap-2 px-3 py-2 ${dense ? "rounded-none" : "rounded-xl"} border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md`}
