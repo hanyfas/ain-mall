@@ -77,6 +77,33 @@ function toSrc(path?: string): string | undefined {
     return withBase(path);
 }
 
+function computeFallbackUrl(original: string, attempt: number): string | null {
+    try {
+        const url = original.startsWith('/') ? original : '/' + original;
+        const parts = url.split('/');
+        const file = parts.pop() || '';
+        const dir = parts.join('/');
+        // Decode once to operate on raw filename
+        const decoded = decodeURIComponent(file);
+        // Common fixes per attempt
+        const fixes = [
+            // 0: replace curly apostrophes and dots in names like P.F. -> P F
+            decoded.replace(/[’']/g, "'").replace(/\.+/g, ' ').replace(/\s+/g, ' ').trim(),
+            // 1: remove apostrophes entirely
+            decoded.replace(/[’']/g, '').trim(),
+            // 2: strip diacritics (é → e)
+            decoded.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’']/g, '').trim(),
+        ];
+        const idx = Math.min(attempt, fixes.length - 1);
+        const candidate = fixes[idx];
+        const reencoded = encodeURIComponent(candidate).replace(/%20/g, ' ');
+        // Keep spaces; withBase() will encode properly segment-wise
+        return withBase(dir + '/' + reencoded);
+    } catch {
+        return null;
+    }
+}
+
 type Lang = "en" | "ar";
 
 type StoreRec = {
@@ -661,11 +688,19 @@ function ResultsList({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                         <div className="w-8 h-8 rounded-lg bg-[var(--brand-purple)]/10 flex items-center justify-center overflow-hidden border border-black/20" data-list-thumb data-icon-scale="up">
                             {s.iconUrl ? (
                                 <img
-                                    src={toSrc(s.iconUrl)}
+                                    src={toSrc(s.iconUrl) || ''}
                                     alt="Store logo"
                                     className="w-6 h-6 object-contain rounded-md"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
+                                        const src0 = target.getAttribute('src') || '';
+                                        const attempt = Number(target.dataset.a || '0');
+                                        const next = computeFallbackUrl(src0, attempt);
+                                        if (next && attempt < 2) {
+                                            target.dataset.a = String(attempt + 1);
+                                            target.src = next;
+                                            return;
+                                        }
                                         target.style.display = 'none';
                                         const parent = target.parentElement;
                                         if (parent) {
@@ -705,7 +740,18 @@ function ResultsGrid({ lang, items, onSelect }: { lang: Lang; items: StoreRec[];
                     >
                         <div className="w-12 h-12 rounded-xl bg-[var(--brand-purple)]/10 text-[var(--brand-purple)] grid place-items-center overflow-hidden border border-black/20" data-grid-thumb data-icon-scale="up">
                             {s.iconUrl ? (
-                                <img src={toSrc(s.iconUrl)} alt="logo" className="w-10 h-10 object-contain rounded-lg" />
+                                <img src={toSrc(s.iconUrl) || ''} alt="logo" className="w-10 h-10 object-contain rounded-lg" onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    const src0 = target.getAttribute('src') || '';
+                                    const attempt = Number(target.dataset.a || '0');
+                                    const next = computeFallbackUrl(src0, attempt);
+                                    if (next && attempt < 2) {
+                                        target.dataset.a = String(attempt + 1);
+                                        target.src = next;
+                                    } else {
+                                        target.style.display = 'none';
+                                    }
+                                }} />
                             ) : (
                                 <Store className="w-6 h-6" />
                             )}
