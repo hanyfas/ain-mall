@@ -59,10 +59,16 @@ const MAP_IMG_PRIMARY = "/images/map_temo.png";
 const MAP_IMG_FALLBACK = "/images/map_temo.png";
 
 // Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
+function encodePathSegments(raw: string): string {
+    // Keep slashes, encode each segment to handle spaces, apostrophes, diacritics, etc.
+    const leading = raw.startsWith("/") ? "/" : "";
+    const parts = raw.replace(/^\/+/, "").split("/");
+    const encoded = parts.map((seg) => encodeURIComponent(decodeURIComponent(seg)));
+    return leading + encoded.join("/");
+}
 function withBase(path: string): string {
-    const trimmed = path.startsWith("/") ? path.slice(1) : path;
-    // import.meta.env.BASE_URL always ends with '/'
-    // e.g., '/' on Vercel, '/ain-mall/' on GitHub Pages
+    const encoded = encodePathSegments(path);
+    const trimmed = encoded.startsWith("/") ? encoded.slice(1) : encoded;
     return (import.meta as any).env.BASE_URL + trimmed;
 }
 function toSrc(path?: string): string | undefined {
