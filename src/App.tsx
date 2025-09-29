@@ -10,12 +10,11 @@ import {
     Baby,
     Footprints,
     Info,
-    ParkingCircle,
-    Accessibility,
-    CigaretteOff,
-    AlertTriangle,
-    ChevronLeft,
-    ChevronRight,
+    
+    
+    
+    
+    
     Languages,
     LayoutGrid,
     List as ListIcon,
@@ -437,26 +436,26 @@ const STORES: StoreRec[] = [
 ];
 
 // ---------- GitHub categories & logos loader ----------
-const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
-    fashion: <Shirt className="w-6 h-6" />,
-    electronics: <Smartphone className="w-6 h-6" />,
-    "food & cafe": <Utensils className="w-6 h-6" />,
-    supermarket: <ShoppingCart className="w-6 h-6" />,
-    kids: <Baby className="w-6 h-6" />,
-    sports: <Footprints className="w-6 h-6" />,
-    Banks: <Info className="w-6 h-6" />,
-};
+// const CATEGORY_ICON_MAP: Record<string, React.ReactNode> = {
+//     fashion: <Shirt className="w-6 h-6" />,
+//     electronics: <Smartphone className="w-6 h-6" />,
+//     "food & cafe": <Utensils className="w-6 h-6" />,
+//     supermarket: <ShoppingCart className="w-6 h-6" />,
+//     kids: <Baby className="w-6 h-6" />,
+//     sports: <Footprints className="w-6 h-6" />,
+//     Banks: <Info className="w-6 h-6" />,
+// };
 
-function toDisplayName(fileName: string): string {
-    const dot = fileName.lastIndexOf(".");
-    const base = dot >= 0 ? fileName.slice(0, dot) : fileName;
-    const spaced = base.replaceAll("_", " ").replaceAll("-", " ");
-    return spaced
-        .split(" ")
-        .filter(Boolean)
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-}
+// function toDisplayName(fileName: string): string {
+//     const dot = fileName.lastIndexOf(".");
+//     const base = dot >= 0 ? fileName.slice(0, dot) : fileName;
+//     const spaced = base.replaceAll("_", " ").replaceAll("-", " ");
+//     return spaced
+//         .split(" ")
+//         .filter(Boolean)
+//         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+//         .join(" ");
+// }
 
 async function fetchLocalCategories(): Promise<{ categories: CategoryRec[]; stores: StoreRec[] }> {
     // For now, return empty arrays since we're using local static data
@@ -512,18 +511,18 @@ function LanguageToggle({ lang, onChange }: { lang: Lang; onChange: (l: Lang) =>
     );
 }
 
-function TopOverlay({ lang, onLang }: { lang: Lang; onLang: (l: Lang) => void }) {
-    return (
-        <div className="relative h-16 md:h-20">
-            <div className="absolute inset-x-4 md:inset-x-6 top-3 md:top-4 flex items-center justify-between">
-                <img src={LOGO_URL} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
-                <div className="backdrop-blur-md bg-white/60 border border-black/20 rounded-xl shadow-lg">
-                    <LanguageToggle lang={lang} onChange={onLang} />
-                </div>
-            </div>
-        </div>
-    );
-}
+// function TopOverlay({ lang, onLang }: { lang: Lang; onLang: (l: Lang) => void }) {
+//     return (
+//         <div className="relative h-16 md:h-20">
+//             <div className="absolute inset-x-4 md:inset-x-6 top-3 md:top-4 flex items-center justify-between">
+//                 <img src={LOGO_URL} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+//                 <div className="backdrop-blur-md bg-white/60 border border-black/20 rounded-xl shadow-lg">
+//                     <LanguageToggle lang={lang} onChange={onLang} />
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
 
 function Pill({ active, onClick, children }: { active?: boolean; onClick?: () => void; children: React.ReactNode }) {
     return (
@@ -557,36 +556,36 @@ function ChipsRow({ items, activeKey, onSelect, lang }: { items: CategoryRec[]; 
     );
 }
 
-function IconTile({ label, iconUrl, onClick }: { label: string; iconUrl?: string; onClick?: () => void }) {
-    return (
-        <button onClick={onClick} className="flex flex-col items-center justify-center gap-2 p-2 rounded-2xl bg-white/80 hover:bg-white/90 border border-black/20 shadow-md backdrop-blur transition-all duration-200" data-grid-tile>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--brand-purple)]/10 overflow-hidden" data-grid-thumb data-icon-scale="up">
-                {iconUrl ? (
-                    <img
-                        src={iconUrl}
-                        alt={label}
-                        className="w-8 h-8 object-contain"
-                        onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                                parent.innerHTML = '<div class="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>';
-                            }
-                        }}
-                    />
-                ) : (
-                    <div className="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center" data-icon-scale="up">
-                        <svg className="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                    </div>
-                )}
-            </div>
-            <div className="text-sm font-medium text-[var(--brand-black)]" data-text-scale="up">{label}</div>
-        </button>
-    );
-}
+// function IconTile({ label, iconUrl, onClick }: { label: string; iconUrl?: string; onClick?: () => void }) {
+//     return (
+//         <button onClick={onClick} className="flex flex-col items-center justify-center gap-2 p-2 rounded-2xl bg-white/80 hover:bg-white/90 border border-black/20 shadow-md backdrop-blur transition-all duration-200" data-grid-tile>
+//             <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--brand-purple)]/10 overflow-hidden" data-grid-thumb data-icon-scale="up">
+//                 {iconUrl ? (
+//                     <img
+//                         src={iconUrl}
+//                         alt={label}
+//                         className="w-8 h-8 object-contain"
+//                         onError={(e) => {
+//                             const target = e.target as HTMLImageElement;
+//                             target.style.display = 'none';
+//                             const parent = target.parentElement;
+//                             if (parent) {
+//                                 parent.innerHTML = '<div class="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>';
+//                             }
+//                         }}
+//                     />
+//                 ) : (
+//                     <div className="w-8 h-8 bg-[var(--brand-purple)]/20 rounded-lg flex items-center justify-center" data-icon-scale="up">
+//                         <svg className="w-5 h-5 text-[var(--brand-purple)]" fill="currentColor" viewBox="0 0 24 24">
+//                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+//                         </svg>
+//                     </div>
+//                 )}
+//             </div>
+//             <div className="text-sm font-medium text-[var(--brand-black)]" data-text-scale="up">{label}</div>
+//         </button>
+//     );
+// }
 
 function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void }) {
     return (
@@ -725,38 +724,38 @@ function OnScreenKeyboard({ lang, onKey }: { lang: Lang; onKey: (key: KbdKey) =>
 }
 
 // Lucide fallbacks
-const BaseSvg: React.FC<React.SVGProps<SVGSVGElement>> = ({ className, children, ...rest }) => (
-    <svg
-        className={className}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-        {...rest}
-    >
-        {children}
-    </svg>
-);
-const RestroomIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <BaseSvg {...props}>
-        <path d="M12 3v18" />
-        <circle cx="7" cy="5.5" r="1.5" />
-        <path d="M4.5 20v-6l2-3 2 3v6" />
-        <circle cx="17" cy="5.5" r="1.5" />
-        <path d="M18.5 20v-6h-3V20" />
-    </BaseSvg>
-);
-const ElevatorIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <BaseSvg {...props}>
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <rect x="7" y="7" width="10" height="10" rx="1" />
-        <path d="M12 15l2-2h-4l2 2z" />
-        <path d="M12 9l-2 2h4l-2-2z" />
-    </BaseSvg>
-);
+// const BaseSvg: React.FC<React.SVGProps<SVGSVGElement>> = ({ className, children, ...rest }) => (
+//     <svg
+//         className={className}
+//         viewBox="0 0 24 24"
+//         fill="none"
+//         stroke="currentColor"
+//         strokeWidth={2}
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//         aria-hidden="true"
+//         {...rest}
+//     >
+//         {children}
+//     </svg>
+// );
+// const RestroomIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+//     <BaseSvg {...props}>
+//         <path d="M12 3v18" />
+//         <circle cx="7" cy="5.5" r="1.5" />
+//         <path d="M4.5 20v-6l2-3 2 3v6" />
+//         <circle cx="17" cy="5.5" r="1.5" />
+//         <path d="M18.5 20v-6h-3V20" />
+//     </BaseSvg>
+// );
+// const ElevatorIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+//     <BaseSvg {...props}>
+//         <rect x="3" y="3" width="18" height="18" rx="2" />
+//         <rect x="7" y="7" width="10" height="10" rx="1" />
+//         <path d="M12 15l2-2h-4l2 2z" />
+//         <path d="M12 9l-2 2h4l-2-2z" />
+//     </BaseSvg>
+// );
 
 const AMENITIES = [
     { key: "restrooms", en: "Restrooms", ar: "الحمامات", iconUrl: "/src/assets/aminities/restroom.png" },
