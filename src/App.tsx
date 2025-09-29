@@ -113,7 +113,7 @@ function buildStoreLogoCandidates(store: StoreRec): string[] {
     }
     // Hard map for specific tricky cases
     if (store.name_en === 'Caffè Nero') {
-        candidates.unshift('/icons/categories/food & cafe/Caffè Nero.png', '/stores/Caffe Nero.png');
+        candidates.unshift('/icons/categories/food & cafe/Caffe Nero.png', '/stores/Caffe Nero.png');
     }
     if (store.name_en === "P.F. Chang's") {
         candidates.unshift('/icons/categories/food & cafe/P F Changs.png', '/stores/PF Changs.png');
@@ -329,7 +329,7 @@ const STORES: StoreRec[] = [
         level: "G",
         x: 70,
         y: 60,
-        iconUrl: "/categories/food & cafe/Caffe Nero.png",
+        iconUrl: "/icons/categories/food%20&%20cafe/Caffe%20Nero.png",
         description_en: "Italian-inspired coffeehouse chain offering authentic espresso and pastries.",
         description_ar: "سلسلة مقاهي مستوحاة من الطراز الإيطالي تقدم الإسبريسو الأصلي والمعجنات."
     },
@@ -341,7 +341,7 @@ const STORES: StoreRec[] = [
         level: "G",
         x: 55,
         y: 65,
-        iconUrl: "/categories/food & cafe/Paul Cafe.png",
+        iconUrl: "/icons/categories/food & cafe/Paul Cafe.png",
         description_en: "French bakery and café chain offering fresh bread, pastries, and light meals.",
         description_ar: "سلسلة مخابز ومقاهي فرنسية تقدم الخبز الطازج والمعجنات والوجبات الخفيفة."
     },
@@ -663,9 +663,9 @@ function ChipsRow({ items, activeKey, onSelect, lang }: { items: CategoryRec[]; 
 //     );
 // }
 
-function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void }) {
+function AmenitiesBar({ lang, activeAmenity, onToggle, dense }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void; dense?: boolean }) {
     return (
-        <div className="px-4 md:px-6 pb-4">
+        <div className={dense ? "px-0 pb-0" : "px-4 md:px-6 pb-4"}>
             <div className="w-full rounded-2xl border border-black/20 bg-white/60 backdrop-blur shadow-md" data-glass>
                 <div className="px-3 py-3 overflow-x-auto" data-tight-pad="md">
                     <div className="flex items-stretch justify-center gap-3 min-w-0 w-full" data-tight-gap="lg">
@@ -1534,7 +1534,7 @@ export default function WayfindingApp() {
 
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
                 {/* Top bar: logo + language selector (glass) */}
-                <div className="px-4 md:px-6 pt-4 pb-2">
+                <div className={dense ? "px-0 pt-0 pb-0" : "px-4 md:px-6 pt-4 pb-2"}>
                     <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
                         <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
@@ -1552,7 +1552,7 @@ export default function WayfindingApp() {
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
-                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
+                <main data-test-id="main-grid" className={`flex-1 min-h-0 ${dense ? "px-0 pb-0" : "px-4 md:px-6 pb-2"} grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
                     {/* Left: Browse/search */}
                     <section className="min-h-0 min-w-0 order-2 xl:order-none overflow-hidden">
                         <BrowseBox
@@ -1577,7 +1577,7 @@ export default function WayfindingApp() {
                 </main>
 
                 {/* Full-width Amenities Bar */}
-                <AmenitiesBar lang={lang} activeAmenity={activeAmenity} onToggle={(key) => setActiveAmenity(activeAmenity === key ? undefined : key)} />
+                <AmenitiesBar dense={dense} lang={lang} activeAmenity={activeAmenity} onToggle={(key) => setActiveAmenity(activeAmenity === key ? undefined : key)} />
 
                 {/* Footer removed per request */}
             </div>
