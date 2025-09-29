@@ -329,7 +329,7 @@ const STORES: StoreRec[] = [
         level: "G",
         x: 70,
         y: 60,
-        iconUrl: "/icons/categories/food%20&%20cafe/Caffè%20Nero.png",
+        iconUrl: "/icons/categories/food%20&%20cafe/Caffe%20Nero.png",
         description_en: "Italian-inspired coffeehouse chain offering authentic espresso and pastries.",
         description_ar: "سلسلة مقاهي مستوحاة من الطراز الإيطالي تقدم الإسبريسو الأصلي والمعجنات."
     },
@@ -341,7 +341,7 @@ const STORES: StoreRec[] = [
         level: "G",
         x: 55,
         y: 65,
-        iconUrl: "/icons/categories/food%20&%20cafe/Paul%20Café.png",
+        iconUrl: "/icons/categories/food%20&%20cafe/Paul%20Cafe.png",
         description_en: "French bakery and café chain offering fresh bread, pastries, and light meals.",
         description_ar: "سلسلة مخابز ومقاهي فرنسية تقدم الخبز الطازج والمعجنات والوجبات الخفيفة."
     },
@@ -389,7 +389,7 @@ const STORES: StoreRec[] = [
         level: "G",
         x: 35,
         y: 85,
-        iconUrl: "/icons/categories/food%20&%20cafe/P F Changs.png",
+        iconUrl: "/icons/categories/food%20&%20cafe/PF%20Changs.png",
         description_en: "American restaurant chain specializing in Asian-inspired cuisine and contemporary dining.",
         description_ar: "سلسلة مطاعم أمريكية متخصصة في المأكولات المستوحاة من آسيا والمأكولات المعاصرة."
     },
