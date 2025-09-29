@@ -72,6 +72,8 @@ function withBase(path: string): string {
 }
 function toSrc(path?: string): string | undefined {
     if (!path) return undefined;
+    // If Vite already provided a fully-qualified path (e.g., imported asset), use it as-is
+    if (path.startsWith('/')) return path;
     if (/^https?:\/\//i.test(path)) return path;
     return withBase(path);
 }
@@ -657,7 +659,7 @@ function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAme
                                     }`}
                             >
                                 {a.iconUrl ? (
-                                    <img src={toSrc(a.iconUrl)} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
+                                    <img src={a.iconUrl} alt={lang === 'en' ? a.en : a.ar} className="w-7 h-7 object-contain" data-icon-scale="up" />
                                 ) : null}
                                 <span className="text-base whitespace-nowrap" data-text-scale="up">{lang === 'en' ? a.en : a.ar}</span>
                             </button>
@@ -1073,7 +1075,7 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                             y={amenityLocation.y - 2}
                             width="4"
                             height="4"
-                            href={toSrc(AMENITIES.find(a => a.key === activeAmenity)?.iconUrl)}
+                            href={AMENITIES.find(a => a.key === activeAmenity)?.iconUrl}
                             className="animate-amenity-pulse"
                         />
                         <text
