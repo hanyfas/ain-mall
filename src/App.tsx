@@ -663,9 +663,9 @@ function ChipsRow({ items, activeKey, onSelect, lang }: { items: CategoryRec[]; 
 //     );
 // }
 
-function AmenitiesBar({ lang, activeAmenity, onToggle, dense }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void; dense?: boolean }) {
+function AmenitiesBar({ lang, activeAmenity, onToggle }: { lang: Lang; activeAmenity?: string; onToggle: (key: string) => void }) {
     return (
-        <div className={dense ? "px-0 pb-0" : "px-4 md:px-6 pb-4"}>
+        <div className={"px-4 md:px-6 pb-4"}>
             <div className="w-full rounded-2xl border border-black/20 bg-white/60 backdrop-blur shadow-md" data-glass>
                 <div className="px-3 py-3 overflow-x-auto" data-tight-pad="md">
                     <div className="flex items-stretch justify-center gap-3 min-w-0 w-full" data-tight-gap="lg">
@@ -1534,8 +1534,8 @@ export default function WayfindingApp() {
 
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
                 {/* Top bar: logo + language selector (glass) */}
-                <div className={dense ? "px-0 pt-0 pb-0" : "px-4 md:px-6 pt-4 pb-2"}>
-                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between ${dense ? "px-0" : "px-4 md:px-6"}`} data-glass>
+                <div className={"px-4 md:px-6 pt-4 pb-2"}>
+                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
                         <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <div className="flex items-center gap-2" data-tight-gap="md">
                             <button
@@ -1551,9 +1551,7 @@ export default function WayfindingApp() {
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
-                <main data-test-id="main-grid" className={`flex-1 min-h-0 ${dense ? "px-0 pb-0" : "px-4 md:px-6 pb-2"} grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}
-                    style={dense ? { marginLeft: 0, marginRight: 0 } : undefined}
-                >
+                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
                     {/* Left: Browse/search */}
                     <section className="min-h-0 min-w-0 order-2 xl:order-none overflow-hidden">
                         <BrowseBox
@@ -1578,7 +1576,7 @@ export default function WayfindingApp() {
                 </main>
 
                 {/* Full-width Amenities Bar */}
-                <AmenitiesBar dense={dense} lang={lang} activeAmenity={activeAmenity} onToggle={(key) => setActiveAmenity(activeAmenity === key ? undefined : key)} />
+                <AmenitiesBar lang={lang} activeAmenity={activeAmenity} onToggle={(key) => setActiveAmenity(activeAmenity === key ? undefined : key)} />
 
                 {/* Footer removed per request */}
             </div>
