@@ -60,15 +60,11 @@ const MAP_IMG_FALLBACK = "/images/map_temo.png";
 
 // Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
 function withBase(path: string): string {
-    // Rely on URL resolution to avoid double-encoding
-    try {
-        const base = (import.meta as any).env.BASE_URL || '/';
-        const u = new URL(path, base);
-        return u.pathname;
-    } catch {
-        const trimmed = path.startsWith('/') ? path : '/' + path;
-        return ((import.meta as any).env.BASE_URL || '/') + trimmed.replace(/^\//, '');
-    }
+    // Simple join that preserves non-root BASE_URL like '/ain-mall/'
+    const base = (import.meta as any).env.BASE_URL || '/';
+    const baseNorm = base.endsWith('/') ? base : base + '/';
+    const p = path.startsWith('/') ? path.slice(1) : path;
+    return baseNorm + p;
 }
 function encodeSegments(p: string): string {
     const leading = p.startsWith('/') ? '/' : '';
@@ -1066,13 +1062,13 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                 }}
             >
                 <img
-                    src={withBase(MAP_IMG_PRIMARY)}
+                    src={toSrc(MAP_IMG_PRIMARY) || ''}
                     alt="Mall map"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                         const t = e.currentTarget as HTMLImageElement;
                         if (t.dataset.fallback !== "1") {
-                            t.src = withBase(MAP_IMG_FALLBACK);
+                            t.src = toSrc(MAP_IMG_FALLBACK) || '';
                             t.dataset.fallback = "1";
                         }
                     }}
@@ -1547,7 +1543,8 @@ export default function WayfindingApp() {
                             </button>
                             <LanguageToggle lang={lang} onChange={setLang} />
                         </div>
-                        <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                        <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
+                        <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                     </div>
                 </div>
 
