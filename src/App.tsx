@@ -1350,7 +1350,8 @@ export default function WayfindingApp() {
             return "en";
         }
     });
-    const dir = lang === "ar" ? "rtl" : "ltr";
+    // Keep UI layout fixed; do not flip when switching language
+    const dir: 'ltr' = 'ltr';
 
     // UI density variant (flat/dense)
     const [dense, setDense] = useState<boolean>(false);
@@ -1536,7 +1537,6 @@ export default function WayfindingApp() {
                 {/* Top bar: logo + language selector (glass) */}
                 <div className={"px-4 md:px-6 pt-4 pb-2"}>
                     <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
-                        <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                         <div className="flex items-center gap-2" data-tight-gap="md">
                             <button
                                 className={`flex items-center gap-2 px-3 py-2 ${dense ? "rounded-none" : "rounded-xl"} border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md`}
@@ -1547,6 +1547,7 @@ export default function WayfindingApp() {
                             </button>
                             <LanguageToggle lang={lang} onChange={setLang} />
                         </div>
+                        <img src={withBase(LOGO_URL)} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                     </div>
                 </div>
 
