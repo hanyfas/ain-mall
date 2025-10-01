@@ -1551,9 +1551,9 @@ export default function WayfindingApp() {
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
-                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
+                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:1fr_560px] overflow-hidden`}>
                     {/* Left: Browse/search */}
-                    <section className="min-h-0 min-w-0 order-2 xl:order-none overflow-hidden">
+                    <section className="min-h-0 min-w-0 order-2 xl:order-none xl:col-start-2 overflow-hidden">
                         <BrowseBox
                             lang={lang}
                             query={query}
@@ -1567,7 +1567,7 @@ export default function WayfindingApp() {
                     </section>
 
                     {/* Center: Map */}
-                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col order-1 xl:order-none">
+                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col order-1 xl:order-none xl:col-start-1">
                         <div className="flex-1 min-h-0">
                             <MapCanvas lang={lang} activeId={activeStoreId} stores={storesData} activeAmenity={activeAmenity} />
                         </div>
