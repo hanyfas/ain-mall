@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import arabicFontUrl from "./assets/Fonts/alfont_com_AlFont_com_URW-DIN-Arabic-1.ttf?url";
 // Import amenity icons so Vite rewrites URLs for production
 import iconRestroom from "./assets/aminities/restroom.png";
 import iconParking from "./assets/aminities/parking.png";
@@ -1389,10 +1390,9 @@ export default function WayfindingApp() {
                 ["--brand-white" as any]: "#ffffff",
                 ["--brand-gray" as any]: "#f8f9fa",
                 height: "1080px",
-                // Base dark purple gradient similar to the attached
-                background: lang === "ar"
-                    ? "linear-gradient(225deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
-                    : "linear-gradient(135deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
+                fontFamily: lang === 'ar' ? '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui' : 'Poppins, ui-sans-serif, system-ui',
+                // Fixed background (no flipping on language change)
+                background: "linear-gradient(135deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
             }}
         >
             {/* Background decorative glows (match attached look) */}
@@ -1438,12 +1438,8 @@ export default function WayfindingApp() {
             </div>
             {/* Font setup */}
             <style>{`
-        @font-face { font-family: 'URW DIN Arabic'; src: url('/fonts/URW-DIN-Arabic-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'URW DIN Arabic'; src: url('/fonts/URW-DIN-Arabic-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'URW DIN Arabic'; src: url('/fonts/URW-DIN-Arabic-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'URW DIN Arabic'; src: url('/fonts/URW-DIN-Arabic-SemiBold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
-        @font-face { font-family: 'URW DIN Arabic'; src: url('/fonts/URW-DIN-Arabic-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap');
+        @font-face { font-family: 'URW DIN Arabic'; src: url(${arabicFontUrl}) format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
         :root { 
             --brand-purple: #A072E8; 
             --brand-black: #1a1a1a; 
@@ -1451,7 +1447,7 @@ export default function WayfindingApp() {
             --brand-gray: #f8f9fa;
             --brand-dark-gray: #6b7280;
         }
-        body { font-family: ${dir === 'ltr' ? 'Poppins, ui-sans-serif, system-ui' : '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui'}; }
+        /* Body font is set on the root container via inline style */
         
         @keyframes gradient {
             0% { 
@@ -1532,7 +1528,9 @@ export default function WayfindingApp() {
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
                 {/* Top bar: logo + language selector (glass) */}
                 <div className={"px-4 md:px-6 pt-4 pb-2"}>
-                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-white/60 backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass>
+                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-transparent backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass
+                        style={{ background: 'linear-gradient(270deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.0) 100%)' }}
+                    >
                         <div className="flex items-center gap-2" data-tight-gap="md">
                             <button
                                 className={`flex items-center gap-2 px-3 py-2 ${dense ? "rounded-none" : "rounded-xl"} border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md`}
@@ -1544,14 +1542,20 @@ export default function WayfindingApp() {
                             <LanguageToggle lang={lang} onChange={setLang} />
                         </div>
                         <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
-                        <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
                     </div>
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
                 <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:1fr_560px] overflow-hidden`}>
-                    {/* Left: Browse/search */}
-                    <section className="min-h-0 min-w-0 order-2 xl:order-none xl:col-start-2 overflow-hidden">
+                    {/* Left: Map (fixed left on xl+) */}
+                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col xl:col-start-1 xl:col-end-2 xl:row-start-1">
+                        <div className="flex-1 min-h-0">
+                            <MapCanvas lang={lang} activeId={activeStoreId} stores={storesData} activeAmenity={activeAmenity} />
+                        </div>
+                    </section>
+
+                    {/* Right: Browse/search (fixed right on xl+) */}
+                    <section className="min-h-0 min-w-0 xl:col-start-2 xl:col-end-3 xl:row-start-1 overflow-hidden">
                         <BrowseBox
                             lang={lang}
                             query={query}
@@ -1562,13 +1566,6 @@ export default function WayfindingApp() {
                             onSelect={(id) => setActiveStoreId(id)}
                             categories={categoriesData}
                         />
-                    </section>
-
-                    {/* Center: Map */}
-                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col order-1 xl:order-none xl:col-start-1">
-                        <div className="flex-1 min-h-0">
-                            <MapCanvas lang={lang} activeId={activeStoreId} stores={storesData} activeAmenity={activeAmenity} />
-                        </div>
                     </section>
 
                 </main>
