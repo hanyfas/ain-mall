@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { getMapData, show3dMap, MapView, TShow3DMapOptions, disableText3DWorker } from '@mappedin/mappedin-js';
+import { getMapData, show3dMap, MapView, TShow3DMapOptions } from '@mappedin/mappedin-js';
 import '@mappedin/mappedin-js/lib/esm/index.css';
 import theme from "./theme";
 import { applyThemeStyling } from "./themeApplicator";
@@ -62,8 +62,6 @@ import {
 
 // ---------- Constants & Types ----------
 const LOGO_URL = "/images/AinMall_Logo.png";
-const MAP_IMG_PRIMARY = "/images/map_temp.png";
-const MAP_IMG_FALLBACK = "/images/map_temp.png";
 
 // MappedIn Configuration - matching reference project
 const MAPPEDIN_OPTIONS = {
@@ -1008,7 +1006,7 @@ function BrowseBox({
     );
 }
 
-function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; activeId?: number; stores: StoreRec[]; activeAmenity?: string }) {
+function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[]; activeAmenity?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapViewRef = useRef<MapView | null>(null);
     const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -1184,7 +1182,7 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
 
                 // Set up camera event listeners and initial state
                 // Listen to camera changes - update zoom and tilt when camera changes
-                let cameraUpdateTimeout: NodeJS.Timeout;
+                let cameraUpdateTimeout: ReturnType<typeof setTimeout>;
                 const updateCameraState = () => {
                     if (mapViewRef.current && mapViewRef.current.Camera) {
                         try {
