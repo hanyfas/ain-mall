@@ -1049,7 +1049,7 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                     },
                     style: {
                         //backgroundAlpha: number,
-                        backgroundColor: '#444444',
+                        backgroundColor: '#87867b',
                         outlines: true,
                         shading: true,
                         //wallTopColor: '#ff00ff',
@@ -1058,159 +1058,167 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
 
                 const mapView = await show3dMap(mapContainerRef.current, mapData, MapOptions);
 
-                if (isMounted) {
-                    mapViewRef.current = mapView;
-                    setIsMapLoaded(true);
+                if (!isMounted) return;
 
-                    // Store mapData for later use
-                    (mapViewRef.current as any).__mapData = mapData;
+                // Store mapView and mapData first
+                mapViewRef.current = mapView;
+                (mapViewRef.current as any).__mapData = mapData;
 
-                    // Label all spaces - matching reference exactly
-                    mapView.Text3D.labelAll();
+                // Get all floors from the API - matching reference exactly
+                const floors = mapData.getByType('floor');
+                // Sort floors by elevation (lowest first) for our UI controls
+                floors.sort((a: any, b: any) => (a.elevation || 0) - (b.elevation || 0));
+                (mapViewRef.current as any).__floors = floors;
 
-                    // Get all floors from the API - matching reference exactly
-                    const floors = mapData.getByType('floor');
-                    // Sort floors by elevation (lowest first) for our UI controls
-                    floors.sort((a: any, b: any) => (a.elevation || 0) - (b.elevation || 0));
-                    (mapViewRef.current as any).__floors = floors;
-                    // Store floors in state to trigger re-render and enable buttons
-                    setFloorsList(floors);
+                // Store floors in state BEFORE setting up event listeners
+                setFloorsList(floors);
 
-                    // Set initial floor index based on currentFloor
-                    try {
-                        const currentFloorObj = mapView.currentFloor;
-                        if (currentFloorObj && floors.length > 0) {
-                            const floorIndex = floors.findIndex((f: any) => f.id === currentFloorObj.id);
-                            if (floorIndex !== -1) {
-                                setCurrentFloor(floorIndex);
-                            } else {
-                                setCurrentFloor(0);
-                            }
+                // Set up floor-change event listener BEFORE any operations that might trigger it
+                mapView.on('floor-change', (event: any) => {
+                    if (!isMounted) return;
+
+                    const floorsFromRef = (mapViewRef.current as any).__floors;
+                    if (!floorsFromRef || floorsFromRef.length === 0) return;
+
+                    // Match reference: event.floor.id
+                    const newFloorId = event?.floor?.id || event?.floorId;
+                    if (newFloorId) {
+                        const floorIndex = floorsFromRef.findIndex((f: any) => f.id === newFloorId);
+                        if (floorIndex !== -1) {
+                            setCurrentFloor(floorIndex);
+                        }
+                    }
+                });
+
+                // Set initial floor index based on currentFloor (after listener is set up)
+                try {
+                    const currentFloorObj = mapView.currentFloor;
+                    if (currentFloorObj && floors.length > 0) {
+                        const floorIndex = floors.findIndex((f: any) => f.id === currentFloorObj.id);
+                        if (floorIndex !== -1) {
+                            setCurrentFloor(floorIndex);
                         } else {
                             setCurrentFloor(0);
                         }
-                    } catch (e) {
+                    } else {
                         setCurrentFloor(0);
                     }
+                } catch (e) {
+                    setCurrentFloor(0);
+                }
 
-                    // Apply space styling and labels - matching reference exactly
-                    let labelIcon = '';
-                    mapData.getByType("space").forEach((space: any) => {
-                        if (space.type == 'hallway') {
-                            mapView.updateState(space, {
-                                color: "#848379", // Set height for the space
-                            });
+                // Label all spaces - matching reference exactly (with error handling)
+                try {
+                    mapView.Text3D.labelAll();
+                } catch (e) {
+                    // Enterprise mode not enabled - this is expected with demo keys
+                    console.log('Text3D.labelAll() skipped (Enterprise mode not enabled)');
+                }
+
+                // Apply space styling and labels - matching reference exactly
+                let labelIcon = '';
+                mapData.getByType("space").forEach((space: any) => {
+                    if (space.type == 'hallway') {
+                        mapView.updateState(space, {
+                            color: "#848379", // Set height for the space
+                        });
+                    }
+                    else if (space.type == 'room' && space.name && space.name.trim() != '') {
+                        if (space.name.toLowerCase().includes("prayer")) {
+                            labelIcon = svgIcons.prayer_room_mf;
                         }
-                        else if (space.type == 'room' && space.name && space.name.trim() != '') {
-                            if (space.name.toLowerCase().includes("prayer")) {
-                                labelIcon = svgIcons.prayer_room_mf;
-                            }
-                            else if (space.name.toLowerCase().includes("toilet")) {
-                                labelIcon = svgIcons.toilet_mf;
-                            }
-                            else {
-                                labelIcon = '';
-                            }
-                            mapView.Labels.add(space, space.name, {
+                        else if (space.name.toLowerCase().includes("toilet")) {
+                            labelIcon = svgIcons.toilet_mf;
+                        }
+                        else {
+                            labelIcon = '';
+                        }
+                        mapView.Labels.add(space, space.name, {
+                            appearance: {
+                                //pinColor: color,
+                                //pinColorInactive: color,
+                                icon: labelIcon,
+                                iconSize: 30,
+                                color: "#101010",
+                                textSize: 15,
+                            },
+                        });
+                    }
+                });
+
+                // Add labels for connections (elevators and escalators) - matching reference exactly
+                mapData.getByType("connection").forEach((connection: any) => {
+                    const connectionType = connection.type;
+                    if (connectionType == 'elevator') {
+                        connection.coordinates.forEach((c: any) => {
+                            mapView.Labels.add(c, '', {
                                 appearance: {
-                                    //pinColor: color,
-                                    //pinColorInactive: color,
-                                    icon: labelIcon,
+                                    pinColor: '#FFFFFF',
+                                    pinColorInactive: '#FFFFFF',
+                                    icon: svgIcons.elevators,
                                     iconSize: 30,
                                     color: "#101010",
                                     textSize: 15,
                                 },
                             });
-                        }
-                    });
-
-                    // Add labels for connections (elevators and escalators) - matching reference exactly
-                    mapData.getByType("connection").forEach((connection: any) => {
-                        const connectionType = connection.type;
-                        if (connectionType == 'elevator') {
-                            connection.coordinates.forEach((c: any) => {
-                                mapView.Labels.add(c, '', {
-                                    appearance: {
-                                        pinColor: '#FFFFFF',
-                                        pinColorInactive: '#FFFFFF',
-                                        icon: svgIcons.elevators,
-                                        iconSize: 30,
-                                        color: "#101010",
-                                        textSize: 15,
-                                    },
-                                });
-                            });
-                        }
-                        else {
-                            connection.coordinates.forEach((c: any) => {
-                                mapView.Labels.add(c, '', {
-                                    appearance: {
-                                        pinColor: '#FFFFFF',
-                                        pinColorInactive: '#FFFFFF',
-                                        icon: svgIcons.escalator,
-                                        iconSize: 30,
-                                        color: "#101010",
-                                        textSize: 15,
-                                    },
-                                });
-                            });
-                        }
-                    });
-
-                    // Apply theme styling - matching reference exactly
-                    applyThemeStyling(mapView, mapData, theme);
-
-                    // Set initial camera position using Camera properties
-                    try {
-                        if (mapView.Camera) {
-                            setZoom(mapView.Camera.zoomLevel || 1);
-                            setTilt(mapView.Camera.pitch || 0);
-                        }
-                    } catch (e) {
-                        console.log('Camera state not available yet:', e);
+                        });
                     }
-
-                    // Listen to camera changes - update zoom and tilt when camera changes
-                    let cameraUpdateTimeout: NodeJS.Timeout;
-                    const updateCameraState = () => {
-                        if (mapViewRef.current && mapViewRef.current.Camera) {
-                            try {
-                                setZoom(mapViewRef.current.Camera.zoomLevel);
-                                setTilt(mapViewRef.current.Camera.pitch);
-                            } catch (e) {
-                                // Ignore errors
-                            }
-                        }
-                    };
-
-                    // Throttle camera updates - event name is 'camera-change'
-                    mapView.on('camera-change', () => {
-                        clearTimeout(cameraUpdateTimeout);
-                        cameraUpdateTimeout = setTimeout(updateCameraState, 100);
-                    });
-
-                    // Ensure pan, zoom, and tilt interactions are enabled
-                    if (mapView.Camera && mapView.Camera.interactions) {
-                        mapView.Camera.interactions.enable();
+                    else {
+                        connection.coordinates.forEach((c: any) => {
+                            mapView.Labels.add(c, '', {
+                                appearance: {
+                                    pinColor: '#FFFFFF',
+                                    pinColorInactive: '#FFFFFF',
+                                    icon: svgIcons.escalator,
+                                    iconSize: 30,
+                                    color: "#101010",
+                                    textSize: 15,
+                                },
+                            });
+                        });
                     }
+                });
 
-                    // Listen to floor changes - matching reference pattern
-                    mapView.on('floor-change', (event: any) => {
-                        if (!isMounted) return;
+                // Apply theme styling - matching reference exactly
+                applyThemeStyling(mapView, mapData, theme);
 
-                        const floorsFromRef = (mapViewRef.current as any).__floors;
-                        if (!floorsFromRef || floorsFromRef.length === 0) return;
-
-                        // Match reference: event.floor.id
-                        const newFloorId = event?.floor?.id || event?.floorId;
-                        if (newFloorId) {
-                            const floorIndex = floorsFromRef.findIndex((f: any) => f.id === newFloorId);
-                            if (floorIndex !== -1) {
-                                setCurrentFloor(floorIndex);
-                            }
+                // Set up camera event listeners and initial state
+                // Listen to camera changes - update zoom and tilt when camera changes
+                let cameraUpdateTimeout: NodeJS.Timeout;
+                const updateCameraState = () => {
+                    if (mapViewRef.current && mapViewRef.current.Camera) {
+                        try {
+                            setZoom(mapViewRef.current.Camera.zoomLevel);
+                            setTilt(mapViewRef.current.Camera.pitch);
+                        } catch (e) {
+                            // Ignore errors
                         }
-                    });
+                    }
+                };
+
+                // Throttle camera updates - event name is 'camera-change'
+                mapView.on('camera-change', () => {
+                    clearTimeout(cameraUpdateTimeout);
+                    cameraUpdateTimeout = setTimeout(updateCameraState, 100);
+                });
+
+                // Ensure pan, zoom, and tilt interactions are enabled
+                if (mapView.Camera && mapView.Camera.interactions) {
+                    mapView.Camera.interactions.enable();
                 }
+
+                // Set initial camera position using Camera properties (after listener is set up)
+                try {
+                    if (mapView.Camera) {
+                        setZoom(mapView.Camera.zoomLevel || 1);
+                        setTilt(mapView.Camera.pitch || 0);
+                    }
+                } catch (e) {
+                    console.log('Camera state not available yet:', e);
+                }
+
+                // Mark map as loaded ONLY after everything is set up
+                setIsMapLoaded(true);
             } catch (error: any) {
                 console.error('Failed to initialize MappedIn map:', error);
 
