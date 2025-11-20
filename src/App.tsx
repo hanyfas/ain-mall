@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { getMapData, show3dMap, MapView, TShow3DMapOptions, disableText3DWorker } from '@mappedin/mappedin-js';
+import '@mappedin/mappedin-js/lib/esm/index.css';
+import theme from "./theme";
+import { applyThemeStyling } from "./themeApplicator";
+// @ts-ignore - JavaScript file with SVG icon strings
+import svgIcons from "./assets/svgicons.js";
 import arabicFontUrl from "./assets/Fonts/alfont_com_AlFont_com_URW-DIN-Arabic-1.ttf?url";
 // Import amenity icons so Vite rewrites URLs for production
 import iconRestroom from "./assets/aminities/restroom.png";
@@ -56,8 +62,15 @@ import {
 
 // ---------- Constants & Types ----------
 const LOGO_URL = "/images/AinMall_Logo.png";
-const MAP_IMG_PRIMARY = "/images/map_temo.png";
-const MAP_IMG_FALLBACK = "/images/map_temo.png";
+const MAP_IMG_PRIMARY = "/images/map_temp.png";
+const MAP_IMG_FALLBACK = "/images/map_temp.png";
+
+// MappedIn Configuration - matching reference project
+const MAPPEDIN_OPTIONS = {
+    key: 'mik_7e6tcm2wtODeksRHr54e207b6',
+    secret: 'mis_5yBUdX4rFxFAkJgWzXqenV4Lasx4wK4QhOMarlQQuRk939a10d2',
+    mapId: '68d783a6dbd109000b017234'
+};
 
 // Ensure assets resolve correctly under different base paths (Vercel vs GitHub Pages)
 function withBase(path: string): string {
@@ -996,125 +1009,401 @@ function BrowseBox({
 }
 
 function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; activeId?: number; stores: StoreRec[]; activeAmenity?: string }) {
-    const [currentFloor, setCurrentFloor] = useState(0); // 0=G, 1=L1, 2=L2, 3=L3, 4=L4, 5=L5
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapViewRef = useRef<MapView | null>(null);
+    const [isMapLoaded, setIsMapLoaded] = useState(false);
+    const [currentFloor, setCurrentFloor] = useState(0);
+    const [floorsList, setFloorsList] = useState<any[]>([]); // Store floors in state to trigger re-renders
     const [zoom, setZoom] = useState(1);
     const [tilt, setTilt] = useState(0);
-    const [amenityLocation, setAmenityLocation] = useState<{ x: number, y: number } | null>(null);
+    const [mapError, setMapError] = useState<string | null>(null);
+    const [retryMessage, setRetryMessage] = useState<string | null>(null);
+    const retryCountRef = useRef(0); // Use useRef for persistent retryCount
+    // Initialize MappedIn MapView
+    useEffect(() => {
+        let isMounted = true;
+        const maxRetries = 3;
+        const retryDelay = 2000; // Start with 2 seconds
 
-    const floors = ['G', 'L1', 'L2', 'L3', 'L4', 'L5'];
-    const currentFloorName = floors[currentFloor];
+        async function initMap() {
+            if (!mapContainerRef.current || mapViewRef.current) return;
+
+            // Ensure container has dimensions
+            const container = mapContainerRef.current;
+            if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+                // Wait for container to have dimensions
+                setTimeout(initMap, 100);
+                return;
+            }
+
+            try {
+                console.log('Loading map with options:', MAPPEDIN_OPTIONS);
+                const mapData = await getMapData(MAPPEDIN_OPTIONS);
+                console.log('Map data loaded:', mapData);
+                console.log('Map ID from data:', (mapData as any).id || (mapData as any).mapId);
+
+                const MapOptions: TShow3DMapOptions = {
+                    //initialFloor: initialFloor,
+                    outdoorView: {
+                        enabled: false,
+                    },
+                    style: {
+                        //backgroundAlpha: number,
+                        backgroundColor: '#444444',
+                        outlines: true,
+                        shading: true,
+                        //wallTopColor: '#ff00ff',
+                    },
+                };
+
+                const mapView = await show3dMap(mapContainerRef.current, mapData, MapOptions);
+
+                if (isMounted) {
+                    mapViewRef.current = mapView;
+                    setIsMapLoaded(true);
+
+                    // Store mapData for later use
+                    (mapViewRef.current as any).__mapData = mapData;
+
+                    // Label all spaces - matching reference exactly
+                    mapView.Text3D.labelAll();
+
+                    // Get all floors from the API - matching reference exactly
+                    const floors = mapData.getByType('floor');
+                    // Sort floors by elevation (lowest first) for our UI controls
+                    floors.sort((a: any, b: any) => (a.elevation || 0) - (b.elevation || 0));
+                    (mapViewRef.current as any).__floors = floors;
+                    // Store floors in state to trigger re-render and enable buttons
+                    setFloorsList(floors);
+
+                    // Set initial floor index based on currentFloor
+                    try {
+                        const currentFloorObj = mapView.currentFloor;
+                        if (currentFloorObj && floors.length > 0) {
+                            const floorIndex = floors.findIndex((f: any) => f.id === currentFloorObj.id);
+                            if (floorIndex !== -1) {
+                                setCurrentFloor(floorIndex);
+                            } else {
+                                setCurrentFloor(0);
+                            }
+                        } else {
+                            setCurrentFloor(0);
+                        }
+                    } catch (e) {
+                        setCurrentFloor(0);
+                    }
+
+                    // Apply space styling and labels - matching reference exactly
+                    let labelIcon = '';
+                    mapData.getByType("space").forEach((space: any) => {
+                        if (space.type == 'hallway') {
+                            mapView.updateState(space, {
+                                color: "#848379", // Set height for the space
+                            });
+                        }
+                        else if (space.type == 'room' && space.name && space.name.trim() != '') {
+                            if (space.name.toLowerCase().includes("prayer")) {
+                                labelIcon = svgIcons.prayer_room_mf;
+                            }
+                            else if (space.name.toLowerCase().includes("toilet")) {
+                                labelIcon = svgIcons.toilet_mf;
+                            }
+                            else {
+                                labelIcon = '';
+                            }
+                            mapView.Labels.add(space, space.name, {
+                                appearance: {
+                                    //pinColor: color,
+                                    //pinColorInactive: color,
+                                    icon: labelIcon,
+                                    iconSize: 30,
+                                    color: "#101010",
+                                    textSize: 15,
+                                },
+                            });
+                        }
+                    });
+
+                    // Add labels for connections (elevators and escalators) - matching reference exactly
+                    mapData.getByType("connection").forEach((connection: any) => {
+                        const connectionType = connection.type;
+                        if (connectionType == 'elevator') {
+                            connection.coordinates.forEach((c: any) => {
+                                mapView.Labels.add(c, '', {
+                                    appearance: {
+                                        pinColor: '#FFFFFF',
+                                        pinColorInactive: '#FFFFFF',
+                                        icon: svgIcons.elevators,
+                                        iconSize: 30,
+                                        color: "#101010",
+                                        textSize: 15,
+                                    },
+                                });
+                            });
+                        }
+                        else {
+                            connection.coordinates.forEach((c: any) => {
+                                mapView.Labels.add(c, '', {
+                                    appearance: {
+                                        pinColor: '#FFFFFF',
+                                        pinColorInactive: '#FFFFFF',
+                                        icon: svgIcons.escalator,
+                                        iconSize: 30,
+                                        color: "#101010",
+                                        textSize: 15,
+                                    },
+                                });
+                            });
+                        }
+                    });
+
+                    // Apply theme styling - matching reference exactly
+                    applyThemeStyling(mapView, mapData, theme);
+
+                    // Set initial camera position using Camera properties
+                    try {
+                        if (mapView.Camera) {
+                            setZoom(mapView.Camera.zoomLevel || 1);
+                            setTilt(mapView.Camera.pitch || 0);
+                        }
+                    } catch (e) {
+                        console.log('Camera state not available yet:', e);
+                    }
+
+                    // Listen to camera changes - update zoom and tilt when camera changes
+                    let cameraUpdateTimeout: NodeJS.Timeout;
+                    const updateCameraState = () => {
+                        if (mapViewRef.current && mapViewRef.current.Camera) {
+                            try {
+                                setZoom(mapViewRef.current.Camera.zoomLevel);
+                                setTilt(mapViewRef.current.Camera.pitch);
+                            } catch (e) {
+                                // Ignore errors
+                            }
+                        }
+                    };
+
+                    // Throttle camera updates - event name is 'camera-change'
+                    mapView.on('camera-change', () => {
+                        clearTimeout(cameraUpdateTimeout);
+                        cameraUpdateTimeout = setTimeout(updateCameraState, 100);
+                    });
+
+                    // Ensure pan, zoom, and tilt interactions are enabled
+                    if (mapView.Camera && mapView.Camera.interactions) {
+                        mapView.Camera.interactions.enable();
+                    }
+
+                    // Listen to floor changes - matching reference pattern
+                    mapView.on('floor-change', (event: any) => {
+                        if (!isMounted) return;
+
+                        const floorsFromRef = (mapViewRef.current as any).__floors;
+                        if (!floorsFromRef || floorsFromRef.length === 0) return;
+
+                        // Match reference: event.floor.id
+                        const newFloorId = event?.floor?.id || event?.floorId;
+                        if (newFloorId) {
+                            const floorIndex = floorsFromRef.findIndex((f: any) => f.id === newFloorId);
+                            if (floorIndex !== -1) {
+                                setCurrentFloor(floorIndex);
+                            }
+                        }
+                    });
+                }
+            } catch (error: any) {
+                console.error('Failed to initialize MappedIn map:', error);
+
+                // Handle rate limit errors (429) with retry
+                if (error?.message?.includes('429') || error?.statusCode === 429 || error?.error === 'Too Many Requests') {
+                    if (retryCountRef.current < maxRetries && isMounted) {
+                        retryCountRef.current++;
+                        const delay = retryDelay * retryCountRef.current; // Exponential backoff: 2s, 4s, 6s
+                        const message = `Rate limit exceeded. Retrying in ${delay / 1000} seconds... (Attempt ${retryCountRef.current}/${maxRetries})`;
+                        console.log(message);
+                        setRetryMessage(message);
+                        setMapError(null);
+
+                        setTimeout(() => {
+                            if (isMounted) {
+                                setRetryMessage(null);
+                                initMap();
+                            }
+                        }, delay);
+                    } else {
+                        const errorMsg = 'Max retries reached. Please wait a moment and refresh the page.';
+                        console.error(errorMsg);
+                        setMapError(errorMsg);
+                        setRetryMessage(null);
+                        setIsMapLoaded(false);
+                    }
+                } else {
+                    // For other errors, don't retry
+                    setMapError(error?.message || 'Failed to load map. Please refresh the page.');
+                    setRetryMessage(null);
+                    setIsMapLoaded(false);
+                }
+            }
+        }
+
+        initMap();
+
+        return () => {
+            isMounted = false;
+            if (mapViewRef.current) {
+                mapViewRef.current.destroy();
+                mapViewRef.current = null;
+            }
+        };
+    }, []);
+
+    // Get floors from state (which triggers re-renders when updated)
+    const floors = floorsList.length > 0
+        ? floorsList.map((f: any) => f.shortName || f.name || f.id || 'G')
+        : ['G', 'L1', 'L2', 'L3', 'L4', 'L5'];
+    const currentFloorName = floors[currentFloor] || 'G';
 
     const handleFloorUp = () => {
-        if (currentFloor < floors.length - 1) {
-            setCurrentFloor(currentFloor + 1);
-        }
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
+        if (currentFloor >= floorsList.length - 1) return;
+
+        const nextFloor = floorsList[currentFloor + 1];
+        if (!nextFloor) return;
+
+        // Match reference exactly: mapView.setFloor(floor.id);
+        mapViewRef.current.setFloor(nextFloor.id);
     };
 
     const handleFloorDown = () => {
-        if (currentFloor > 0) {
-            setCurrentFloor(currentFloor - 1);
-        }
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
+        if (currentFloor <= 0) return;
+
+        const prevFloor = floorsList[currentFloor - 1];
+        if (!prevFloor) return;
+
+        // Match reference exactly: mapView.setFloor(floor.id);
+        mapViewRef.current.setFloor(prevFloor.id);
     };
 
     const handleZoomIn = () => {
-        setZoom(Math.min(zoom + 0.2, 3));
+        if (mapViewRef.current && mapViewRef.current.Camera) {
+            try {
+                const currentZoom = mapViewRef.current.Camera.zoomLevel;
+                const maxZoom = mapViewRef.current.Camera.maxZoomLevel || 22;
+                const newZoom = Math.min(currentZoom + 0.5, maxZoom);
+                mapViewRef.current.Camera.set({ zoomLevel: newZoom });
+            } catch (e) {
+                console.error('Error zooming in:', e);
+            }
+        }
     };
 
     const handleZoomOut = () => {
-        setZoom(Math.max(zoom - 0.2, 0.5));
+        if (mapViewRef.current && mapViewRef.current.Camera) {
+            try {
+                const currentZoom = mapViewRef.current.Camera.zoomLevel;
+                const minZoom = mapViewRef.current.Camera.minZoomLevel || 1;
+                const newZoom = Math.max(currentZoom - 0.5, minZoom);
+                mapViewRef.current.Camera.set({ zoomLevel: newZoom });
+            } catch (e) {
+                console.error('Error zooming out:', e);
+            }
+        }
     };
 
     const handleTiltLeft = () => {
-        setTilt(Math.max(tilt - 15, -45));
+        if (mapViewRef.current && mapViewRef.current.Camera) {
+            try {
+                const currentPitch = mapViewRef.current.Camera.pitch;
+                const minPitch = mapViewRef.current.Camera.minPitch || -45;
+                const newPitch = Math.max(currentPitch - 15, minPitch);
+                mapViewRef.current.Camera.set({ pitch: newPitch });
+            } catch (e) {
+                console.error('Error tilting left:', e);
+            }
+        }
     };
 
     const handleTiltRight = () => {
-        setTilt(Math.min(tilt + 15, 45));
+        if (mapViewRef.current && mapViewRef.current.Camera) {
+            try {
+                const currentPitch = mapViewRef.current.Camera.pitch;
+                const maxPitch = mapViewRef.current.Camera.maxPitch || 45;
+                const newPitch = Math.min(currentPitch + 15, maxPitch);
+                mapViewRef.current.Camera.set({ pitch: newPitch });
+            } catch (e) {
+                console.error('Error tilting right:', e);
+            }
+        }
     };
 
     const resetView = () => {
-        setZoom(1);
-        setTilt(0);
+        if (mapViewRef.current && mapViewRef.current.Camera) {
+            try {
+                // Reset to default view - keep current center, reset zoom and pitch
+                const center = mapViewRef.current.Camera.center;
+                const defaultZoom = mapViewRef.current.Camera.minZoomLevel || 1;
+                mapViewRef.current.Camera.set({
+                    center: center,
+                    zoomLevel: defaultZoom,
+                    pitch: 0
+                });
+            } catch (e) {
+                console.error('Error resetting view:', e);
+            }
+        }
     };
 
-    // Filter stores by current floor
-    const floorStores = stores.filter(store => store.level === currentFloorName);
-
-    // Generate random location for amenity when active
-    useEffect(() => {
-        if (activeAmenity) {
-            const randomX = 20 + Math.random() * 60; // Random X between 20-80
-            const randomY = 15 + Math.random() * 30; // Random Y between 15-45
-            setAmenityLocation({ x: randomX, y: randomY });
-        } else {
-            setAmenityLocation(null);
-        }
-    }, [activeAmenity]);
 
     return (
-        <div className="relative w-full h-full rounded-3xl border border-black/20 overflow-hidden backdrop-blur-sm" style={{ backgroundColor: '#e7e3e5' }}>
-            {/* Map image with zoom and tilt */}
-            <div
-                className="absolute inset-0 w-full h-full"
-                style={{
-                    transform: `scale(${zoom}) rotate(${tilt}deg)`,
-                    transformOrigin: 'center center',
-                    transition: 'transform 0.3s ease'
-                }}
-            >
-                <img
-                    src={toSrc(MAP_IMG_PRIMARY) || ''}
-                    alt="Mall map"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                        const t = e.currentTarget as HTMLImageElement;
-                        if (t.dataset.fallback !== "1") {
-                            t.src = toSrc(MAP_IMG_FALLBACK) || '';
-                            t.dataset.fallback = "1";
-                        }
-                    }}
-                />
-            </div>
+        <div
+            ref={mapContainerRef}
+            id="mappedin-map"
+            className="relative w-full h-full"
+            style={{
+                backgroundColor: '#444444',
+                position: 'relative',
+                width: '100%',
+                height: '100%'
+            }}
+        >
+            {/* MappedIn MapView will be rendered here */}
+            {!isMapLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#444444]">
+                    <div className="text-center">
+                        {retryMessage ? (
+                            <div className="text-white">
+                                <div className="mb-2">{retryMessage}</div>
+                                <div className="text-sm text-white/70">Please wait...</div>
+                            </div>
+                        ) : mapError ? (
+                            <div className="text-white">
+                                <div className="mb-2 text-red-300">{mapError}</div>
+                                <button
+                                    onClick={() => {
+                                        setMapError(null);
+                                        setRetryMessage(null);
+                                        setIsMapLoaded(false);
+                                        if (mapViewRef.current) {
+                                            mapViewRef.current.destroy();
+                                            mapViewRef.current = null;
+                                        }
+                                        // Trigger re-initialization
+                                        window.location.reload();
+                                    }}
+                                    className="mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-white">Loading map...</div>
+                        )}
+                    </div>
+                </div>
+            )}
 
-            {/* Store labels overlay (no dots) */}
-            <svg viewBox="0 0 100 56" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full pointer-events-none">
-                {floorStores.map((s) => {
-                    const isActive = s.id === activeId;
-                    return (
-                        <g key={s.id}>
-                            {isActive && (
-                                <text x={s.x + 2.8} y={s.y + 0.4} fontSize="2.2" fill="#212424" stroke="#fff" strokeWidth="0.3">
-                                    {lang === "en" ? s.name_en : s.name_ar}
-                                </text>
-                            )}
-                        </g>
-                    );
-                })}
-
-                {/* Amenity location indicator */}
-                {activeAmenity && amenityLocation && (
-                    <g>
-                        <image
-                            x={amenityLocation.x - 2}
-                            y={amenityLocation.y - 2}
-                            width="4"
-                            height="4"
-                            href={AMENITIES.find(a => a.key === activeAmenity)?.iconUrl}
-                            className="animate-amenity-pulse"
-                        />
-                        <text
-                            x={amenityLocation.x}
-                            y={amenityLocation.y + 3.5}
-                            fontSize="1.2"
-                            fill="#000000"
-                            textAnchor="middle"
-                            className="font-medium"
-                        >
-                            {AMENITIES.find(a => a.key === activeAmenity)?.[lang] || activeAmenity}
-                        </text>
-                    </g>
-                )}
-            </svg>
+            {/* Store labels and amenity indicators will be handled by MappedIn */}
 
             {/* Floor Controls */}
             <div className="absolute top-4 right-4 flex flex-col gap-2">
@@ -1122,8 +1411,9 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                     <div className="flex flex-col gap-1">
                         <button
                             onClick={handleFloorUp}
-                            disabled={currentFloor >= floors.length - 1}
+                            disabled={!isMapLoaded || !floorsList || floorsList.length === 0 || currentFloor >= floorsList.length - 1}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            title={isMapLoaded && floorsList && currentFloor < floorsList.length - 1 ? `Go to ${floors[currentFloor + 1] || 'next floor'}` : 'Cannot go up'}
                         >
                             <ChevronUp className="w-4 h-4" />
                         </button>
@@ -1132,8 +1422,9 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                         </div>
                         <button
                             onClick={handleFloorDown}
-                            disabled={currentFloor <= 0}
+                            disabled={!isMapLoaded || !floorsList || floorsList.length === 0 || currentFloor <= 0}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            title={isMapLoaded && floorsList && currentFloor > 0 ? `Go to ${floors[currentFloor - 1] || 'previous floor'}` : 'Cannot go down'}
                         >
                             <ChevronDown className="w-4 h-4" />
                         </button>
@@ -1145,19 +1436,21 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
             <div className="absolute top-4 left-4 flex flex-col gap-2">
                 <div className="backdrop-blur-md bg-white/80 rounded-xl border border-black/20 p-2 shadow-lg">
                     <div className="text-center text-xs font-medium text-[var(--brand-black)] mb-2">
-                        {Math.round(zoom * 100)}%
+                        {isMapLoaded && mapViewRef.current?.Camera
+                            ? `${Math.round(zoom)}x`
+                            : '1x'}
                     </div>
                     <div className="flex flex-col gap-1">
                         <button
                             onClick={handleZoomIn}
-                            disabled={zoom >= 3}
+                            disabled={!isMapLoaded || !mapViewRef.current?.Camera}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             <Plus className="w-4 h-4" />
                         </button>
                         <button
                             onClick={handleZoomOut}
-                            disabled={zoom <= 0.5}
+                            disabled={!isMapLoaded || !mapViewRef.current?.Camera}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             <Minus className="w-4 h-4" />
@@ -1175,14 +1468,14 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                     <div className="flex gap-1">
                         <button
                             onClick={handleTiltLeft}
-                            disabled={tilt <= -45}
+                            disabled={!isMapLoaded || !mapViewRef.current?.Camera}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             <RotateCcw className="w-4 h-4" />
                         </button>
                         <button
                             onClick={handleTiltRight}
-                            disabled={tilt >= 45}
+                            disabled={!isMapLoaded || !mapViewRef.current?.Camera}
                             className="p-1 rounded-lg bg-white/60 hover:bg-white/80 disabled:opacity-50 disabled:cursor-not-allowed transition"
                         >
                             <RotateCw className="w-4 h-4" />
@@ -1193,7 +1486,8 @@ function MapCanvas({ lang, activeId, stores, activeAmenity }: { lang: Lang; acti
                 {/* Reset View Button */}
                 <button
                     onClick={resetView}
-                    className="backdrop-blur-md bg-white/80 rounded-xl border border-black/20 p-2 shadow-lg hover:bg-white/90 transition"
+                    disabled={!isMapLoaded}
+                    className="backdrop-blur-md bg-white/80 rounded-xl border border-black/20 p-2 shadow-lg hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title={lang === "en" ? "Reset View" : "إعادة تعيين العرض"}
                 >
                     <div className="text-xs font-medium text-[var(--brand-black)]">Reset</div>
@@ -1546,16 +1840,9 @@ export default function WayfindingApp() {
                 </div>
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
-                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:1fr_560px] overflow-hidden`}>
-                    {/* Left: Map (fixed left on xl+) */}
-                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col xl:col-start-1 xl:col-end-2 xl:row-start-1">
-                        <div className="flex-1 min-h-0">
-                            <MapCanvas lang={lang} activeId={activeStoreId} stores={storesData} activeAmenity={activeAmenity} />
-                        </div>
-                    </section>
-
-                    {/* Right: Browse/search (fixed right on xl+) */}
-                    <section className="min-h-0 min-w-0 xl:col-start-2 xl:col-end-3 xl:row-start-1 overflow-hidden">
+                <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
+                    {/* Left: Browse/search (fixed left on xl+) */}
+                    <section className="min-h-0 min-w-0 xl:col-start-1 xl:col-end-2 xl:row-start-1 overflow-hidden">
                         <BrowseBox
                             lang={lang}
                             query={query}
@@ -1566,6 +1853,13 @@ export default function WayfindingApp() {
                             onSelect={(id) => setActiveStoreId(id)}
                             categories={categoriesData}
                         />
+                    </section>
+
+                    {/* Right: Map (fixed right on xl+) */}
+                    <section className="h-[360px] md:h-[520px] xl:h-full min-h-0 flex flex-col xl:col-start-2 xl:col-end-3 xl:row-start-1">
+                        <div className="flex-1 min-h-0">
+                            <MapCanvas lang={lang} activeId={activeStoreId} stores={storesData} activeAmenity={activeAmenity} />
+                        </div>
                     </section>
 
                 </main>
