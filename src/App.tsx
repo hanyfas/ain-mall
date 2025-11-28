@@ -1074,14 +1074,20 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                 // Set up floor-change event listener BEFORE any operations that might trigger it
                 mapView.on('floor-change', (event: any) => {
                     if (!isMounted) return;
+                    console.log('Floor change event:', event);
 
                     const floorsFromRef = (mapViewRef.current as any).__floors;
-                    if (!floorsFromRef || floorsFromRef.length === 0) return;
+                    if (!floorsFromRef || floorsFromRef.length === 0) {
+                        console.log('No floors in ref');
+                        return;
+                    }
 
                     // Match reference: event.floor.id
                     const newFloorId = event?.floor?.id || event?.floorId;
+                    console.log('New floor ID:', newFloorId);
                     if (newFloorId) {
                         const floorIndex = floorsFromRef.findIndex((f: any) => f.id === newFloorId);
+                        console.log('Found floor index:', floorIndex);
                         if (floorIndex !== -1) {
                             setCurrentFloor(floorIndex);
                         }
@@ -1270,25 +1276,61 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
     const currentFloorName = floors[currentFloor] || 'G';
 
     const handleFloorUp = () => {
-        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
-        if (currentFloor >= floorsList.length - 1) return;
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) {
+            console.log('Floor up blocked:', { mapView: !!mapViewRef.current, isMapLoaded, floorsList: floorsList?.length });
+            return;
+        }
+        if (currentFloor >= floorsList.length - 1) {
+            console.log('Already at top floor');
+            return;
+        }
 
         const nextFloor = floorsList[currentFloor + 1];
-        if (!nextFloor) return;
+        if (!nextFloor) {
+            console.log('Next floor not found');
+            return;
+        }
 
-        // Match reference exactly: mapView.setFloor(floor.id);
-        mapViewRef.current.setFloor(nextFloor.id);
+        console.log('Changing floor up to:', nextFloor.id, nextFloor.name || nextFloor.shortName);
+        // Try using Floor object first, fallback to ID
+        try {
+            mapViewRef.current.setFloor(nextFloor);
+        } catch (e) {
+            try {
+                mapViewRef.current.setFloor(nextFloor.id);
+            } catch (e2) {
+                console.error('Error setting floor:', e2);
+            }
+        }
     };
 
     const handleFloorDown = () => {
-        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) return;
-        if (currentFloor <= 0) return;
+        if (!mapViewRef.current || !isMapLoaded || !floorsList || floorsList.length === 0) {
+            console.log('Floor down blocked:', { mapView: !!mapViewRef.current, isMapLoaded, floorsList: floorsList?.length });
+            return;
+        }
+        if (currentFloor <= 0) {
+            console.log('Already at bottom floor');
+            return;
+        }
 
         const prevFloor = floorsList[currentFloor - 1];
-        if (!prevFloor) return;
+        if (!prevFloor) {
+            console.log('Previous floor not found');
+            return;
+        }
 
-        // Match reference exactly: mapView.setFloor(floor.id);
-        mapViewRef.current.setFloor(prevFloor.id);
+        console.log('Changing floor down to:', prevFloor.id, prevFloor.name || prevFloor.shortName);
+        // Try using Floor object first, fallback to ID
+        try {
+            mapViewRef.current.setFloor(prevFloor);
+        } catch (e) {
+            try {
+                mapViewRef.current.setFloor(prevFloor.id);
+            } catch (e2) {
+                console.error('Error setting floor:', e2);
+            }
+        }
     };
 
     const handleZoomIn = () => {
@@ -1689,7 +1731,7 @@ export default function WayfindingApp() {
                 ["--brand-black" as any]: "#212424",
                 ["--brand-white" as any]: "#ffffff",
                 ["--brand-gray" as any]: "#f8f9fa",
-                height: "1080px",
+                height: "100vh",
                 fontFamily: lang === 'ar' ? '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui' : 'Poppins, ui-sans-serif, system-ui',
                 // Fixed background (no flipping on language change)
                 background: "linear-gradient(135deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
