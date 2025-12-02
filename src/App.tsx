@@ -63,7 +63,7 @@ import {
  */
 
 // ---------- Constants & Types ----------
-const LOGO_URL = "/images/AinMall_Logo.png";
+// LOGO_URL removed - using imported logoImage instead
 
 // MappedIn Configuration - matching reference project
 const MAPPEDIN_OPTIONS = {
@@ -584,18 +584,7 @@ function getKeyboardLayout(lang: Lang): KbdKey[][] {
 }
 
 // ---------- Small UI atoms ----------
-function LanguageToggle({ lang, onChange }: { lang: Lang; onChange: (l: Lang) => void }) {
-    return (
-        <button
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md"
-            onClick={() => onChange(toggleLang(lang))}
-            aria-label="Toggle language"
-        >
-            <Languages className="w-5 h-5" />
-            <span className="font-medium">{lang === "en" ? "عربي" : "EN"}</span>
-        </button>
-    );
-}
+// LanguageToggle removed - using inline language toggle in Header component
 
 // Header component matching the design image
 function Header({ lang, onLangChange }: { lang: Lang; onLangChange: (l: Lang) => void }) {
@@ -1775,7 +1764,7 @@ export default function WayfindingApp() {
     const dir: 'ltr' = 'ltr';
 
     // UI density variant (flat/dense)
-    const [dense, setDense] = useState<boolean>(false);
+    const [dense] = useState<boolean>(false);
 
     // Browse state
     const [query, setQuery] = useState("");
