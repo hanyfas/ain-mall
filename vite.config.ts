@@ -11,6 +11,9 @@ export default defineConfig({
     optimizeDeps: {
         include: ['@mappedin/mappedin-js'],
     },
+    build: {
+        chunkSizeWarningLimit: 1000, // Increase warning limit to 1000 KB (1 MB)
+    },
     server: {
         hmr: {
             overlay: false, // Disable error overlay for PnP errors

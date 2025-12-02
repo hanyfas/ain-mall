@@ -28,14 +28,14 @@ const theme = {
   "colors": {
     "accent": {
       "primary": "#6A9FA0",
-      "secondary": "#C9C8C7",
+      "secondary": "#c08fcc",
       "neutral": "#D0CDCC",
       "neutral2": "#E3E2E1",
       "success": "#66A15B",
       "error": "#C47947"
     },
     "background": {
-      "primary": "#FBFAF9",
+      "primary": "#c08fcc",
       "secondary": "#F5F1EF",
       "tertiary": "#E9F9F9"
     },
