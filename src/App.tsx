@@ -587,7 +587,19 @@ function getKeyboardLayout(lang: Lang): KbdKey[][] {
 // LanguageToggle removed - using inline language toggle in Header component
 
 // Header component matching the design image
-function Header({ lang, onLangChange }: { lang: Lang; onLangChange: (l: Lang) => void }) {
+function Header({
+    lang,
+    onLangChange,
+    onWhatsNewClick,
+    onFeaturesClick,
+    onEventsClick
+}: {
+    lang: Lang;
+    onLangChange: (l: Lang) => void;
+    onWhatsNewClick?: () => void;
+    onFeaturesClick?: () => void;
+    onEventsClick?: () => void;
+}) {
     return (
         <div className="w-full bg-white shadow-sm">
             {/* Top utility bar */}
@@ -629,28 +641,34 @@ function Header({ lang, onLangChange }: { lang: Lang; onLangChange: (l: Lang) =>
             {/* Purple navigation bar */}
             <div className="w-full bg-[var(--brand-purple)] px-4 md:px-8 py-3.5">
                 <nav className="flex items-center gap-10 md:gap-12 flex-wrap">
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap">
-                        WHAT'S NEW
-                    </a>
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                        <Store className="w-4 h-4" />
-                        <span>SHOP</span>
-                    </a>
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                        <Utensils className="w-4 h-4" />
-                        <span>DINE</span>
-                    </a>
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                        <Smartphone className="w-4 h-4" />
-                        <span>ENTERTAIN</span>
-                    </a>
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap">
-                        EVENTS
-                    </a>
-                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onWhatsNewClick?.();
+                        }}
+                        className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                        {lang === "en" ? "WHAT'S NEW" : "ما الجديد"}
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onEventsClick?.();
+                        }}
+                        className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                        {lang === "en" ? "EVENTS" : "الفعاليات"}
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onFeaturesClick?.();
+                        }}
+                        className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                    >
                         <LayoutGrid className="w-4 h-4" />
-                        <span>FEATURES</span>
-                    </a>
+                        <span>{lang === "en" ? "FEATURES" : "المميزات"}</span>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -1771,6 +1789,7 @@ export default function WayfindingApp() {
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [activeStoreId, setActiveStoreId] = useState<number | undefined>();
     const [activeAmenity, setActiveAmenity] = useState<string | undefined>(undefined);
+    const [activePageUrl, setActivePageUrl] = useState<string | null>(null);
 
     // Remote data (GitHub) with local fallbacks
     const [remoteCats, setRemoteCats] = useState<CategoryRec[] | null>(null);
@@ -1898,22 +1917,54 @@ export default function WayfindingApp() {
 
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
                 {/* Header with top utility bar and purple navigation */}
-                <Header lang={lang} onLangChange={setLang} />
+                <Header
+                    lang={lang}
+                    onLangChange={setLang}
+                    onWhatsNewClick={() => setActivePageUrl(activePageUrl === "https://makanimallofalain.com/whats-new" ? null : "https://makanimallofalain.com/whats-new")}
+                    onFeaturesClick={() => setActivePageUrl(activePageUrl === "https://makanimallofalain.com/amenities" ? null : "https://makanimallofalain.com/amenities")}
+                    onEventsClick={() => setActivePageUrl(activePageUrl === "https://makanimallofalain.com/events" ? null : "https://makanimallofalain.com/events")}
+                />
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
                 <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
-                    {/* Left: Browse/search (fixed left on xl+) */}
+                    {/* Left: Browse/search or iframe view (fixed left on xl+) */}
                     <section className="min-h-0 min-w-0 xl:col-start-1 xl:col-end-2 xl:row-start-1 overflow-hidden">
-                        <BrowseBox
-                            lang={lang}
-                            query={query}
-                            setQuery={setQuery}
-                            activeCategory={activeCategory}
-                            setActiveCategory={setActiveCategory}
-                            items={filtered}
-                            onSelect={(id) => setActiveStoreId(id)}
-                            categories={categoriesData}
-                        />
+                        {activePageUrl ? (
+                            <div className="backdrop-blur-xl bg-white/40 rounded-2xl border border-black/20 shadow-lg h-full min-h-0 flex flex-col">
+                                <div className="flex items-center justify-between p-4 border-b border-white/40">
+                                    <h2 className="text-lg font-semibold text-[var(--brand-black)]">
+                                        {activePageUrl.includes("whats-new") ? (lang === "en" ? "WHAT'S NEW" : "ما الجديد") :
+                                            activePageUrl.includes("amenities") ? (lang === "en" ? "FEATURES" : "المميزات") :
+                                                activePageUrl.includes("events") ? (lang === "en" ? "EVENTS" : "الفعاليات") : ""}
+                                    </h2>
+                                    <button
+                                        onClick={() => setActivePageUrl(null)}
+                                        className="px-3 py-1 rounded-lg bg-[var(--brand-purple)] text-white text-sm font-medium hover:bg-[var(--brand-purple)]/90 transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                                <iframe
+                                    src={activePageUrl}
+                                    className="w-full flex-1 border-0 rounded-b-2xl"
+                                    title={activePageUrl.includes("whats-new") ? "What's New" :
+                                        activePageUrl.includes("amenities") ? "Features" :
+                                            activePageUrl.includes("events") ? "Events" : ""}
+                                    allow="fullscreen"
+                                />
+                            </div>
+                        ) : (
+                            <BrowseBox
+                                lang={lang}
+                                query={query}
+                                setQuery={setQuery}
+                                activeCategory={activeCategory}
+                                setActiveCategory={setActiveCategory}
+                                items={filtered}
+                                onSelect={(id) => setActiveStoreId(id)}
+                                categories={categoriesData}
+                            />
+                        )}
                     </section>
 
                     {/* Right: Map (fixed right on xl+) */}
