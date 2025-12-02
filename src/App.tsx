@@ -16,6 +16,7 @@ import iconChangingRoom from "./assets/aminities/changing_room.png";
 import iconLostFound from "./assets/aminities/lost_found.png";
 import iconCustomerService from "./assets/aminities/customer_service.png";
 import iconAtm from "./assets/aminities/atm.png";
+import logoImage from "./assets/images/AinMall_Logo.png";
 import {
     Search,
     MapPin,
@@ -27,6 +28,7 @@ import {
     Baby,
     Footprints,
     Info,
+    Clock,
 
 
 
@@ -595,18 +597,76 @@ function LanguageToggle({ lang, onChange }: { lang: Lang; onChange: (l: Lang) =>
     );
 }
 
-// function TopOverlay({ lang, onLang }: { lang: Lang; onLang: (l: Lang) => void }) {
-//     return (
-//         <div className="relative h-16 md:h-20">
-//             <div className="absolute inset-x-4 md:inset-x-6 top-3 md:top-4 flex items-center justify-between">
-//                 <img src={LOGO_URL} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
-//                 <div className="backdrop-blur-md bg-white/60 border border-black/20 rounded-xl shadow-lg">
-//                     <LanguageToggle lang={lang} onChange={onLang} />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
+// Header component matching the design image
+function Header({ lang, onLangChange }: { lang: Lang; onLangChange: (l: Lang) => void }) {
+    return (
+        <div className="w-full bg-white shadow-sm">
+            {/* Top utility bar */}
+            <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between">
+                {/* Left: Utility links */}
+                <div className="flex items-center gap-5">
+                    {/* OPEN TODAY */}
+                    <div className="flex items-center gap-2 text-[var(--brand-black)]">
+                        <Clock className="w-4 h-4 text-[var(--brand-black)]/70" />
+                        <span className="text-sm font-semibold">
+                            {lang === "en" ? "OPEN TODAY" : "مفتوح اليوم"}
+                        </span>
+                        <span className="text-sm font-normal">10 AM - 12 MN</span>
+                    </div>
+
+                    {/* Separator */}
+                    <div className="w-px h-6 bg-gray-300" />
+
+                    {/* Language selector */}
+                    <button
+                        onClick={() => onLangChange(toggleLang(lang))}
+                        className="flex items-center gap-1.5 text-sm font-semibold text-[var(--brand-black)] hover:text-[var(--brand-purple)] transition-colors"
+                    >
+                        <Languages className="w-4 h-4" />
+                        <span>{lang === "en" ? "العربية" : "English"}</span>
+                    </button>
+                </div>
+
+                {/* Right: Logo */}
+                <div className="flex items-center">
+                    <img
+                        src={logoImage}
+                        alt="Mall of Al Ain Logo"
+                        className="h-[28.8px] md:h-[38.4px] object-contain"
+                    />
+                </div>
+            </div>
+
+            {/* Purple navigation bar */}
+            <div className="w-full bg-[var(--brand-purple)] px-4 md:px-8 py-3.5">
+                <nav className="flex items-center gap-10 md:gap-12 flex-wrap">
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap">
+                        WHAT'S NEW
+                    </a>
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                        <Store className="w-4 h-4" />
+                        <span>SHOP</span>
+                    </a>
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                        <Utensils className="w-4 h-4" />
+                        <span>DINE</span>
+                    </a>
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                        <Smartphone className="w-4 h-4" />
+                        <span>ENTERTAIN</span>
+                    </a>
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors whitespace-nowrap">
+                        EVENTS
+                    </a>
+                    <a href="#" className="text-white font-normal text-lg hover:text-white/90 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                        <LayoutGrid className="w-4 h-4" />
+                        <span>FEATURES</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    );
+}
 
 function Pill({ active, onClick, children }: { active?: boolean; onClick?: () => void; children: React.ReactNode }) {
     return (
@@ -921,11 +981,11 @@ function BrowseBox({
     return (
         <div
             data-test-id="glass-browse"
-            className="backdrop-blur-xl bg-white/40 rounded-2xl border border-black/20 shadow-lg h-full min-h-0 flex flex-col"
+            className="backdrop-blur-xl bg-white/40 rounded-2xl border border-black/20 shadow-lg h-[98%] mt-[10px] mb-[30px] min-h-0 flex flex-col"
             data-glass
         >
             {/* Search header */}
-            <div className="p-4 border-b border-white/40 min-w-0 flex-shrink-0" data-tight-pad="lg">
+            <div className="p-4  border-b border-white/40 min-w-0 flex-shrink-0" data-tight-pad="lg">
                 <div className="flex flex-col gap-3" data-tight-gap="md">
                     {/* Search box */}
                     <div className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-3 shadow-sm border border-black/20 backdrop-blur" data-tight-pad="md">
@@ -1146,6 +1206,8 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                                 color: "#101010",
                                 textSize: 15,
                             },
+                            // Ensure label sticks to map coordinates
+                            rank: 'medium',
                         });
                     }
                 });
@@ -1164,6 +1226,7 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                                     color: "#101010",
                                     textSize: 15,
                                 },
+                                rank: 'medium',
                             });
                         });
                     }
@@ -1178,6 +1241,7 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                                     color: "#101010",
                                     textSize: 15,
                                 },
+                                rank: 'medium',
                             });
                         });
                     }
@@ -1208,7 +1272,23 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
 
                 // Ensure pan, zoom, and tilt interactions are enabled
                 if (mapView.Camera && mapView.Camera.interactions) {
+                    // Enable all interactions (zoom, pan)
+                    mapView.Camera.interactions.set({
+                        zoom: true,
+                        pan: true,
+                    });
                     mapView.Camera.interactions.enable();
+                }
+
+                // Also ensure the map container allows pointer events
+                if (mapContainerRef.current) {
+                    mapContainerRef.current.style.pointerEvents = 'auto';
+                    // Ensure no CSS is blocking interactions
+                    const canvas = mapContainerRef.current.querySelector('canvas');
+                    if (canvas) {
+                        canvas.style.touchAction = 'pan-x pan-y pinch-zoom';
+                        canvas.style.pointerEvents = 'auto';
+                    }
                 }
 
                 // Set initial camera position using Camera properties (after listener is set up)
@@ -1412,7 +1492,9 @@ function MapCanvas({ lang }: { lang: Lang; activeId?: number; stores?: StoreRec[
                 backgroundColor: '#444444',
                 position: 'relative',
                 width: '100%',
-                height: '100%'
+                height: '100%',
+                pointerEvents: 'auto',
+                touchAction: 'pan-x pan-y pinch-zoom',
             }}
         >
             {/* MappedIn MapView will be rendered here */}
@@ -1727,63 +1809,21 @@ export default function WayfindingApp() {
             data-ui-variant={dense ? "dense" : "default"}
             dir={dir}
             style={{
-                ["--brand-purple" as any]: "#A072E8",
+                ["--brand-purple" as any]: "#7642c7",
                 ["--brand-black" as any]: "#212424",
                 ["--brand-white" as any]: "#ffffff",
                 ["--brand-gray" as any]: "#f8f9fa",
                 height: "100vh",
                 fontFamily: lang === 'ar' ? '"URW DIN Arabic", Poppins, ui-sans-serif, system-ui' : 'Poppins, ui-sans-serif, system-ui',
-                // Fixed background (no flipping on language change)
-                background: "linear-gradient(135deg, #2b0c59 0%, #45107d 40%, #6a3ab0 100%)"
+                background: "#ffffff"
             }}
         >
-            {/* Background decorative glows (match attached look) */}
-            <div className="absolute inset-0 pointer-events-none">
-                {/* Soft light under logo for readability */}
-                <div
-                    className="absolute rounded-full blur-[80px] opacity-70"
-                    style={{
-                        width: "34vw",
-                        height: "24vw",
-                        top: "-6vw",
-                        left: lang === "ar" ? undefined : "-6vw",
-                        right: lang === "ar" ? "-6vw" : undefined,
-                        background: "radial-gradient(closest-side, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 35%, rgba(255,255,255,0) 70%)"
-                    }}
-                />
-                {/* Top-right magenta glow */}
-                <div
-                    className="absolute rounded-full blur-[120px] opacity-60"
-                    style={{
-                        width: "46vw",
-                        height: "46vw",
-                        right: "-12vw",
-                        top: "-14vw",
-                        background: "radial-gradient(closest-side, #ff2dc7 0%, rgba(255,45,199,0.6) 35%, rgba(255,45,199,0.0) 70%)"
-                    }}
-                />
-                {/* Bottom-right purple glow */}
-                <div
-                    className="absolute rounded-full blur-[120px] opacity-70"
-                    style={{
-                        width: "42vw",
-                        height: "42vw",
-                        right: "-8vw",
-                        bottom: "-12vw",
-                        background: "radial-gradient(closest-side, #6a3ab0 0%, rgba(106,58,176,0.55) 40%, rgba(106,58,176,0.0) 75%)"
-                    }}
-                />
-                {/* Optional soft vignette */}
-                <div className="absolute inset-0" style={{
-                    background: "radial-gradient(120% 120% at 50% 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.18) 100%)"
-                }} />
-            </div>
             {/* Font setup */}
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap');
         @font-face { font-family: 'URW DIN Arabic'; src: url(${arabicFontUrl}) format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
         :root { 
-            --brand-purple: #A072E8; 
+            --brand-purple: #7642c7; 
             --brand-black: #1a1a1a; 
             --brand-white: #ffffff;
             --brand-gray: #f8f9fa;
@@ -1793,22 +1833,22 @@ export default function WayfindingApp() {
         
         @keyframes gradient {
             0% { 
-                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #A072E8 100%);
+                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #7642c7 100%);
             }
             20% { 
-                background: linear-gradient(135deg, #f5f5f5 0%, #c0a8e8 50%, #9a6ae0 100%);
+                background: linear-gradient(135deg, #f5f5f5 0%, #c0a8e8 50%, #7642c7 100%);
             }
             40% { 
-                background: linear-gradient(135deg, #e8e8e8 0%, #b098d8 50%, #8a5ad0 100%);
+                background: linear-gradient(135deg, #e8e8e8 0%, #b098d8 50%, #7642c7 100%);
             }
             60% { 
-                background: linear-gradient(135deg, #d8d8d8 0%, #a088c8 50%, #7a4ac0 100%);
+                background: linear-gradient(135deg, #d8d8d8 0%, #a088c8 50%, #7642c7 100%);
             }
             80% { 
-                background: linear-gradient(135deg, #c8c8c8 0%, #9078b8 50%, #6a3ab0 100%);
+                background: linear-gradient(135deg, #c8c8c8 0%, #9078b8 50%, #7642c7 100%);
             }
             100% { 
-                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #A072E8 100%);
+                background: linear-gradient(135deg, #ffffff 0%, #c9aaf0 50%, #7642c7 100%);
             }
         }
         
@@ -1868,24 +1908,8 @@ export default function WayfindingApp() {
         `}</style>
 
             <div data-test-id="app-root" className="relative mx-auto w-full max-w-[1920px] h-full flex flex-col">
-                {/* Top bar: logo + language selector (glass) */}
-                <div className={"px-4 md:px-6 pt-4 pb-2"}>
-                    <div className={`h-16 md:h-20 w-full ${dense ? "rounded-none" : "rounded-2xl"} bg-transparent backdrop-blur border border-black/20 shadow-md flex items-center justify-between px-4 md:px-6`} data-glass
-                        style={{ background: 'linear-gradient(270deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.0) 100%)' }}
-                    >
-                        <div className="flex items-center gap-2" data-tight-gap="md">
-                            <button
-                                className={`flex items-center gap-2 px-3 py-2 ${dense ? "rounded-none" : "rounded-xl"} border border-black/20 bg-white/80 hover:bg-white/90 transition text-[var(--brand-black)] shadow-md`}
-                                onClick={() => setDense((v) => !v)}
-                                aria-label="Toggle density"
-                            >
-                                <span className="font-medium">{dense ? (lang === 'en' ? 'Default UI' : 'واجهة عادية') : (lang === 'en' ? 'Dense UI' : 'واجهة مكثفة')}</span>
-                            </button>
-                            <LanguageToggle lang={lang} onChange={setLang} />
-                        </div>
-                        <img src={toSrc(LOGO_URL) || ''} alt="Mall of Al Ain Logo" className="h-10 md:h-12 object-contain drop-shadow" />
-                    </div>
-                </div>
+                {/* Header with top utility bar and purple navigation */}
+                <Header lang={lang} onLangChange={setLang} />
 
                 {/* Main layout – responsive grid (stacks on small screens, 2 cols on xl+) */}
                 <main data-test-id="main-grid" className={`flex-1 min-h-0 px-4 md:px-6 pb-2 grid ${dense ? "gap-0" : "gap-4 md:gap-6"} items-stretch grid-cols-1 xl:[grid-template-columns:560px_1fr] overflow-hidden`}>
